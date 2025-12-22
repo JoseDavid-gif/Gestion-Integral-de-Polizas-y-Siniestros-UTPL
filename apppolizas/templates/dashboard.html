@@ -1,0 +1,22 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Analista</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+</head>
+<body>
+    <nav class="navbar">
+        <h1>Sistema de Pólizas - Panel Analista</h1>
+        <button id="btnLogout" class="btn-logout">Cerrar Sesión</button>
+    </nav>
+
+    <main class="content">
+        <h2>Bienvenido, Analista</h2>
+        <p>Has iniciado sesión exitosamente con JWT.</p>
+    </main>
+
+    <script src="{% static 'js/dashboard.js' %}"></script>
+</body>
+</html>

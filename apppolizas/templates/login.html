@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Analista</title>
+    <link rel="stylesheet" href="{% static 'css/login_style.css' %}">
+</head>
+<body>
+
+    <div class="login-container">
+        <h2>LOGIN</h2>
+        <form id="loginForm">
+            {% csrf_token %} <div class="form-group">
+                <label>Usuario</label>
+                {{ form.username }}
+            </div>
+
+            <div class="form-group">
+                <label>Contraseña</label>
+                {{ form.password }}
+            </div>
+
+            <div id="errorMessage" class="error-msg"></div>
+
+            <button type="submit" id="btnSubmit">Ingresar</button>
+        </form>
+    </div>
+
+    <script src="{% static 'js/login_logic.js' %}"></script>
+</body>
+</html>
