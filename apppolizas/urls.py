@@ -1,5 +1,13 @@
 from django.urls import path
 from . import views
+from .views import (
+    LoginView, 
+    DashboardAnalistaView, 
+    PolizaListView,
+    PolizaDeleteView,
+    PolizaUpdateView
+)
+
 
 urlpatterns = [
     # Login y Dashboard Analista
@@ -16,4 +24,10 @@ urlpatterns = [
     path('api/usuarios/<int:usuario_id>/', views.UsuarioCRUDView.as_view(), name='usuarios_detail'),
 
     path('logout/', views.logout_view, name='logout'),
+
+        
+    path('polizas/', PolizaListView.as_view(), name='polizas_list'),
+    path('polizas/eliminar/<int:pk>/', PolizaDeleteView.as_view(), name='poliza_delete'),
+    path('polizas/editar/<int:pk>/', PolizaUpdateView.as_view(), name='poliza_update'),
+
 ]

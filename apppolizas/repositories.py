@@ -1,4 +1,5 @@
-from .models import Usuario
+from .models import Usuario, Poliza
+
 
 class UsuarioRepository:
     """Repositorio para operaciones de acceso a datos de Usuario"""
@@ -37,3 +38,32 @@ class UsuarioRepository:
     @staticmethod
     def delete_usuario(usuario_id):
         Usuario.objects.filter(id=usuario_id).delete()        
+
+class PolizaRepository:
+    """Repositorio para operaciones de acceso a datos de Pólizas"""
+
+    @staticmethod
+    def get_all():
+        return Poliza.objects.all().order_by('-fecha_registro')
+
+    @staticmethod
+    def get_by_id(poliza_id):
+        try:
+            return Poliza.objects.get(id=poliza_id)
+        except Poliza.DoesNotExist:
+            return None
+
+    @staticmethod
+    def create(data):
+        return Poliza.objects.create(**data)
+
+    @staticmethod
+    def update(poliza, data):
+        for field, value in data.items():
+            setattr(poliza, field, value)
+        poliza.save()
+        return poliza
+
+    @staticmethod
+    def delete(poliza):
+        poliza.delete()

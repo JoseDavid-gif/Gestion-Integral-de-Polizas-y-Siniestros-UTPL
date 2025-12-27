@@ -1,0 +1,62 @@
+{% extends 'master/masteradmin.html' %}
+{% load static %}
+
+{% block title %}Editar Póliza{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/gSide.css' %}" />
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
+<link rel="stylesheet" href="{% static 'css/poliza.css' %}" />
+{% endblock %}
+
+{% block admin_content %}
+<div class="dashboard-scroll-container">
+    <div class="dashboard-sections">
+        <div class="polizas-container" style="max-width: 900px; margin: 0 auto;">
+            
+            <div class="header-actions">
+                <h4>Editar Póliza: <span style="color: #3D36BF;">{{ poliza.numero_poliza }}</span></h4>
+                <a href="{% url 'polizas_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="form-grid">
+                    {% for field in form %}
+                        {% if field.field.widget.input_type == 'checkbox' %}
+                            <div class="form-group switch-group">
+                                <div class="form-check form-switch custom-switch-container">
+                                    {{ field }}
+                                    <label class="form-check-label" for="{{ field.id_for_label }}">
+                                        {{ field.label }}
+                                    </label>
+                                </div>
+                                {% if field.errors %}
+                                    <div class="error-text">{{ field.errors|striptags }}</div>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="form-group">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="error-text">{{ field.errors|striptags }}</div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div style="margin-top: 2rem; text-align: right; border-top: 1px solid #eee; padding-top: 1rem;">
+                    <a href="{% url 'polizas_list' %}" class="btn btn-secondary" style="margin-right: 10px;">Cancelar</a>
+                    <button type="submit" class="btn btn-primary-custom">Guardar Cambios</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
