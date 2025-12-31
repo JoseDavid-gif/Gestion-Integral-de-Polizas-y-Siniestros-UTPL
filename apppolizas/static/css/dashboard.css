@@ -1,0 +1,35 @@
+/* Ajustes específicos para el Analista basados en Master Admin */
+.main-content-admin {
+    background-color: #f8f9fa; /* Color de fondo del Master Admin */
+    flex-grow: 1;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden; /* Evita scroll doble */
+}
+
+.dashboard-summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Sombra suave del dashboard */
+}
+
+/* Colores corporativos basados en gSide.css */
+.summary-card.registered-users { background-color: #3D36BF; }
+.summary-card.registered-partners { background-color: #1D1959; }
+
+.chart-card {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}

@@ -1,0 +1,355 @@
+/* General */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    background: linear-gradient(135deg, #3D36BF, #1D1959);
+    overflow: hidden; /* Oculta el scroll general del body */
+}
+
+
+/* Wrapper contenedor principal para el sidebar y el main content */
+.layout-wrapper {
+    display: flex; /* Habilitar Flexbox */
+    flex-direction: column; /* CAMBIO CLAVE: Elementos uno al lado del otro */
+    height: 100vh; /* Ocupa la altura completa de la ventana */
+    width: 100%; /* CAMBIO CLAVE: Ocupa todo el ancho disponible de la ventana */
+    gap: 20px; /* Espacio entre el sidebar y el main content */
+    padding: 20px; /* Padding general para que el contenido no toque los bordes de la pantalla */
+    box-sizing: border-box; /* Incluye padding en el cálculo del ancho/alto */
+  }
+  
+
+/* Sidebar (izquierda) */
+.menu {
+  /*width: 100%; ELIMINADO - Conflictivo con Flexbox */
+  flex-basis: 20%; /* Define que el tamaño base sea el 20% */
+  width: 20%;      /* Asegura el ancho en diferentes motores de renderizado */
+  min-width: 200px; /* Opcional: un mínimo para que no se rompa en pantallas medianas */
+  max-width: 20%;   /* Evita que crezca más del 20% */
+  flex-shrink: 0; /* IMPORTE: Evita que el sidebar se encoja */
+  flex-grow: 0; /* IMPORTE: Evita que el sidebar crezca sin control */
+  padding: 20px;
+  display: flex; /* Convierte el sidebar en un contenedor flex para sus elementos internos */
+  flex-direction: column; /* Apila los elementos internos verticalmente */
+  align-items: center; /* Centra horizontalmente los elementos dentro del sidebar */
+  overflow-y: auto; /* Permite scroll vertical si el contenido excede la altura */
+  box-sizing: border-box; /* Incluye padding en el cálculo del width/height */
+}
+
+/* Contenido principal (derecha) */
+.main-content {
+  flex: 1; /* Ocupará el 80% automáticamente */
+  background-color: white;
+  border-radius: 30px;
+  padding: 25px;
+  overflow-y: auto;
+  box-sizing: border-box;
+  margin-left: 0;
+  box-shadow: -20px 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Elementos comunes del sidebar */
+.row1 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 15px;
+    width: 100%; /* Asegura que los row1 ocupen todo el ancho del sidebar */
+}
+
+.logo {
+    width: 150px;
+    margin-bottom: 15px;
+}
+
+.imagen-redonda {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.foto-perfil {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.nombre-usuario {
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 10px;
+}
+
+/* Sidebar nav */
+.navbar-menu {
+    width: 100%; /* Asegura que la navegación ocupe todo el ancho del sidebar */
+    flex-grow: 1; /* Permite que el menú crezca para ocupar espacio entre el usuario y el botón */
+}
+
+.navbar-menu ul {
+    list-style: none;
+    padding: 0;
+    width: 100%; /* Asegura que la lista ocupe todo el ancho de la navegación */
+}
+
+.navbar-menu ul li {
+    margin-bottom: 20px;
+    position: relative;
+    width: 100%; /* Asegura que cada item ocupe todo el ancho de la lista */
+}
+
+.navbar-menu ul li a {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    font-size: 18px;
+    color: white;
+    text-decoration: none;
+    /* CAMBIO CLAVE: Redondea solo las esquinas superior izquierda y inferior izquierda */
+    border-radius: 15px 0 0 15px; /* Superior-izq, Superior-der, Inferior-der, Inferior-izq */
+    transition: background 0.3s ease;
+    width: 100%; /* Asegura que el enlace ocupe todo el ancho del li */
+    box-sizing: border-box; /* Incluye padding en el cálculo del ancho */
+}
+
+
+
+.icono-svg {
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+    transition: transform 0.2s ease;
+}
+
+a:hover .icono-svg {
+    transform: scale(1.1);
+}
+
+.navbar-menu ul li.activo a {
+    background-color: white;
+    color: #1D1959;
+    font-weight: bold;
+}
+
+.navbar-menu ul li.activo .icono-svg {
+    filter: none;
+    opacity: 1;
+}
+
+/* Botón inferior */
+.boton {
+    width: 70%;
+    padding: 10px;
+    border: 2px solid white;
+    background: transparent;
+    border-radius: 25px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.3s ease;
+}
+
+.boton:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Footer (si está fuera del layout-wrapper, ajusta su posición) */
+footer {
+  margin-top: auto; /* Si el footer es el último elemento en un contenedor flex-column */
+  padding: 10px; /* Añadir algo de padding para que no esté pegado al borde */
+  text-align: center; /* Centrar el texto si es necesario */
+  color: white; /* Asumiendo que el footer tiene texto blanco */
+}
+
+
+
+/* Este es el contenedor que actuará como fila con scroll horizontal */
+.horizontal-scroll-container {
+  display: flex; /* Habilita Flexbox para que los elementos hijos se coloquen en fila */
+  flex-direction: row; /* Asegura que los elementos se dispongan horizontalmente (valor por defecto para flex) */
+  flex-wrap: nowrap; /* IMPORTE: Evita que los elementos se envuelvan a la siguiente línea, forzando la fila única */
+  overflow-x: auto; /* Permite el scroll horizontal cuando el contenido excede el ancho del contenedor */
+  overflow-y: hidden; /* Opcional: Oculta el scroll vertical si no lo necesitas */
+  -webkit-overflow-scrolling: touch; /* Mejora el rendimiento del scroll en dispositivos iOS */
+  padding-bottom: 10px; /* Opcional: Añade espacio para la barra de scroll en navegadores que la muestran dentro del contenido */
+  
+  /* CAMBIO: Añadido padding a la izquierda y derecha del contenedor de scroll */
+  padding-left: 20px; /* Padding a la izquierda del contenido scrollable */
+  padding-right: 20px; /* Padding a la derecha del contenido scrollable */
+
+  /* Puedes añadir un poco de gap si quieres espacio entre los elementos internos */
+  gap: 20px; /* Espacio entre los ítems de la fila */
+
+  /* Altura opcional: Si quieres que el contenedor tenga una altura fija */
+  /* height: 300px; */ /* Ajusta la altura según sea necesario */
+}
+
+/* Reglas para los elementos dentro del contenedor horizontal */
+.horizontal-scroll-container > div {
+  flex-shrink: 0; /* IMPORTE: Evita que los elementos hijos se encojan cuando no hay suficiente espacio */
+  /* Define un ancho para los elementos internos para que se visualice el scroll */
+  min-width: 250px; /* Ejemplo: Cada elemento tendrá al menos 250px de ancho */
+  /* O puedes usar un width fijo: */
+  /* width: 280px; */
+
+  /* Estilos de ejemplo para ver los divs */
+  height: 500px; /* Altura de los elementos internos */
+  box-sizing: border-box; /* Asegura que padding y border se incluyan en el width/height */
+  display: flex; /* Para centrar contenido si lo hay */
+  justify-content: center;
+  align-items: center;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Responsivo para tablets y móviles */
+@media (max-width: 992px) {
+  .layout-wrapper {
+    flex-direction: column; /* Apila el sidebar y el contenido principal en columnas */
+    height: auto; /* Permite que el wrapper se ajuste a la altura del contenido */
+  }
+
+  .menu {
+    width: 100%; /* Sidebar ocupa todo el ancho */
+    flex-basis: auto; /* Elimina la base fija en pantallas pequeñas */
+    min-width: auto; /* Permite que el ancho se ajuste */
+    max-width: none; /* Elimina el límite de ancho */
+    flex-direction: row; /* Los elementos del sidebar en fila */
+    justify-content: space-around; /* Distribuye espacio entre elementos */
+    padding: 10px;
+    height: auto; /* Altura se ajusta al contenido */
+    max-height: 180px; /* Un máximo para que no sea demasiado alto */
+    overflow-x: auto; /* Permite scroll horizontal si los ítems son muchos */
+    overflow-y: hidden; /* Oculta el scroll vertical */
+  }
+
+  .row1 {
+    flex-direction: column; /* Logo y perfil apilados verticalmente de nuevo */
+    align-items: center;
+    gap: 0;
+    margin-bottom: 5px; /* Reducir margen */
+  }
+
+  .logo {
+    width: 80px; /* Logo más pequeño en móvil */
+  }
+
+  .imagen-redonda {
+    width: 60px; /* Imagen de perfil más pequeña */
+    height: 60px;
+  }
+
+  .nombre-usuario {
+    font-size: 0.8em; /* Texto más pequeño */
+  }
+
+  .navbar-menu ul {
+    display: flex;
+    flex-wrap: wrap; /* Permite que los ítems del menú se envuelvan */
+    justify-content: center;
+    gap: 5px; /* Menos espacio entre los ítems del menú */
+  }
+
+  .navbar-menu ul li {
+    flex: 0 0 auto; /* No crecen ni se encogen, toman su tamaño */
+    margin-bottom: 5px; /* Menos margen */
+    width: auto; /* Ancho ajustado al contenido del item */
+  }
+
+  .navbar-menu ul li a {
+    flex-direction: column; /* Icono arriba, texto abajo */
+    padding: 5px 8px; /* Padding más pequeño */
+    font-size: 12px; /* Fuente más pequeña */
+  }
+
+  .icono-svg {
+    width: 18px; /* Iconos más pequeños */
+    height: 18px;
+    margin-right: 0;
+    margin-bottom: 3px;
+  }
+
+  .navbar-menu ul li.activo a {
+    border-radius: 8px; /* Radio más pequeño para el fondo activo */
+  }
+
+  .boton {
+    width: 80%; /* Botón más ancho pero con margen */
+    padding: 8px;
+    font-size: 14px;
+    margin-top: 10px;
+  }
+
+  .main-content {
+    width: 100%; /* Contenido principal ocupa todo el ancho */
+    margin: 10px; /* Margen alrededor */
+    border-radius: 30px; /* CAMBIO: Redondea TODOS los bordes */
+    height: auto; /* Altura se ajusta al contenido */
+    min-height: 50vh; /* Para que siempre tenga algo de altura visible */
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

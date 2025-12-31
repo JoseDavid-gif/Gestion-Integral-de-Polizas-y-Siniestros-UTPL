@@ -1,0 +1,192 @@
+/* Contenedor principal */
+.polizas-container {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    width: 100%;
+}
+
+/* Cabecera */
+.header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 1rem;
+}
+
+.header-actions h4 {
+    margin: 0;
+    color: #1D1959;
+    font-weight: 700;
+}
+
+/* Botones */
+.btn-primary-custom {
+    background-color: #1D1959;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    border: none;
+    font-weight: 500;
+}
+
+.btn-primary-custom:hover {
+    background-color: #3D36BF;
+    color: white;
+}
+
+/* Tabla */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table-polizas {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+}
+
+.table-polizas th {
+    background-color: #f8f9fa;
+    color: #1D1959;
+    font-weight: 600;
+    text-align: left;
+    padding: 15px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.table-polizas td {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+    color: #555;
+}
+
+.table-polizas tr:hover {
+    background-color: #fcfcfc;
+}
+
+.row-empty td {
+    text-align: center;
+    padding: 30px;
+    color: #888;
+}
+
+/* Badges de Estado */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-active {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-inactive {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Formulario de eliminar */
+.form-delete {
+    display: inline;
+}
+
+.btn-action {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-delete {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-delete:hover {
+    opacity: 0.8;
+}
+
+/* Modal y Formularios */
+.modal-title {
+    color: #1D1959;
+    font-weight: bold;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+    display: block;
+    font-size: 0.9rem;
+}
+
+.form-group input, 
+.form-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+.error-text {
+    color: #dc3545;
+    font-size: 0.8rem;
+    margin-top: 2px;
+}
+
+.switch-group {
+    display: flex;
+    align-items: center; /* Centrar verticalmente */
+    height: 100%; /* Ocupar la altura de la celda del grid */
+    padding-top: 1.5rem; /* Empujarlos un poco hacia abajo para alinear con inputs de texto */
+}
+
+.custom-switch-container {
+    padding-left: 2.5em; /* Espacio para el toggle */
+    cursor: pointer;
+}
+
+.custom-switch-container .form-check-input {
+    width: 3em;  /* Ancho del interruptor */
+    height: 1.5em; /* Alto del interruptor */
+    margin-left: -2.5em;
+    cursor: pointer;
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+}
+
+/* Color cuando está activo (Azul corporativo) */
+.custom-switch-container .form-check-input:checked {
+    background-color: #1D1959;
+    border-color: #1D1959;
+}
+
+.custom-switch-container label {
+    font-weight: 500;
+    margin-left: 10px;
+    color: #444;
+    cursor: pointer;
+    user-select: none; /* Evita que se seleccione el texto al hacer clic rápido */
+}
+
+/* Ajuste específico para que 'Renovable' y 'Estado' no se vean gigantes */
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(29, 25, 89, 0.25); /* Sombra azul suave al hacer click */
+    border-color: #1D1959;
+}

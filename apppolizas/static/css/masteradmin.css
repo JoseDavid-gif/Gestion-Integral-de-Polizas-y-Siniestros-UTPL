@@ -1,0 +1,285 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f8f9fa;
+    display: flex;
+    min-height: 100vh;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+.sidebar-admin {
+    width: 280px;
+    background-color: #3D36BF;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 0;
+    position: relative;
+}
+
+.sidebar-admin .logo-section {
+    text-align: center;
+    padding: 0.5rem 0;
+    margin-bottom: 0.5rem;
+}
+
+.sidebar-admin .logo-section img {
+    height: 100px;
+    margin-bottom: 0.5rem;
+}
+
+.sidebar-admin .logo-text {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: white;
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+}
+
+
+.sidebar-admin .profile-section {
+    text-align: center;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.sidebar-admin .profile-section .profile-pic {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid white;
+    margin-bottom: 0.5rem;
+}
+
+.sidebar-admin .profile-section .profile-name {
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.sidebar-admin .nav-links {
+    flex-grow: 1;
+}
+
+.sidebar-admin .nav-links .nav-item {
+    display: flex;
+    align-items: center;
+    padding: 0.8rem 2.5rem;
+    color: white;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-admin .nav-links .nav-item:hover,
+.sidebar-admin .nav-links .nav-item.active {
+    background-color: white;
+    color: #3D36BF !important;
+    border-left: none;
+    padding-left: 2.5rem;
+}
+
+.sidebar-admin .nav-links .nav-item i {
+    color: white;
+    margin-right: 1rem;
+    font-size: 1.2rem;
+    transition: color 0.2s ease;
+}
+
+.sidebar-admin .nav-links .nav-item.active i {
+    color: #3D36BF;
+}
+
+.sidebar-admin .login-button-container {
+    padding: 1.5rem 2.5rem;
+    text-align: center;
+    margin-top: auto;
+}
+
+.sidebar-admin .login-button-container .btn-login {
+    background-color: #3D36BF;
+    border-color: white;
+    color: white;
+    font-weight: 600;
+    border: 2px solid white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.sidebar-admin .login-button-container .btn-login:hover {
+    background-color: white;
+    color: #3D36BF;
+}
+
+.sidebar-admin .login-button-container .btn-login i {
+    margin-right: 0.5rem;
+    color: white;
+    transition: color 0.2s ease;
+}
+
+.sidebar-admin .login-button-container .btn-login:hover i {
+    color: #3D36BF;
+}
+
+.main-content-admin {
+    flex-grow: 1;
+    padding: 2rem;
+    background-color: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content-admin .top-bar-admin {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.main-content-admin .top-bar-admin h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #343a40;
+    margin-bottom: 0;
+}
+
+.main-content-admin .top-bar-admin .search-box-admin {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border: 1px solid #dee2e6;
+    border-radius: 3rem;
+    padding: 0.5rem 1rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    width: 400px;
+}
+
+.main-content-admin .top-bar-admin .search-box-admin input {
+    border: none;
+    outline: none;
+    flex-grow: 1;
+    padding: 0.2rem 0;
+    color: #000000;
+}
+
+.main-content-admin .top-bar-admin .search-box-admin input::placeholder {
+    color: #000000;
+}
+
+.main-content-admin .top-bar-admin .search-icon-right {
+    background-color: #000000;
+    border-radius: 3rem;
+    width: 45px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-left: 0.5rem;
+}
+
+.main-content-admin .top-bar-admin .search-icon-right i {
+    font-size: 1.2rem;
+    color: white;
+    line-height: 1;
+}
+
+.main-content-admin .top-bar-admin .notification-icon {
+    background-color: white;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    width: 60px;
+    height: 59px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    border-radius: 35%;
+}
+
+.topbar-right-group {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.main-content-admin .top-bar-admin .notification-icon i {
+    font-size: 2rem;
+    color: black;
+}
+
+@media (max-width: 992px) {
+    body {
+        flex-direction: column;
+    }
+
+    .sidebar-admin {
+        width: 100%;
+        height: auto;
+        padding: 1rem;
+        border-right: none;
+        border-bottom: 1px solid #eee;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .sidebar-admin .logo-section,
+    .sidebar-admin .profile-section,
+    .sidebar-admin .nav-links,
+    .sidebar-admin .login-button-container {
+        margin-bottom: 0;
+    }
+
+    .sidebar-admin .nav-links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .sidebar-admin .nav-links .nav-item {
+        padding: 0.5rem 1rem;
+        border-left: none !important;
+        border-radius: 0.5rem;
+    }
+
+    .sidebar-admin .nav-links .nav-item.active {
+        padding: 0.5rem 1rem;
+    }
+
+    .sidebar-admin .profile-section {
+        display: none;
+    }
+
+    .main-content-admin {
+        width: 100%;
+        padding: 1.5rem;
+    }
+
+    .main-content-admin .top-bar-admin {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .main-content-admin .top-bar-admin .search-box-admin {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content-admin .top-bar-admin .search-box-admin {
+        flex-direction: row;
+        width: 100%;
+    }
+
+    .main-content-admin .top-bar-admin .search-icon-right {
+        margin-left: 0.5rem;
+    }
+}
