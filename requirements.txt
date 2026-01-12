@@ -1,14 +1,9 @@
 asgiref==3.11.0
-<<<<<<< Updated upstream
-<<<<<<< HEAD
 Django==5.2
-=======
-Django==6.0
->>>>>>> 023cea205f0f0fa6e2fc75d4401f28287856a05b
-=======
-Django==5.2
->>>>>>> Stashed changes
 mysqlclient==2.2.7
 sqlparse==0.5.5
 tzdata==2025.3
 PyJWT==2.10.1
+xhtml2pdf
+django-storages
+boto3
