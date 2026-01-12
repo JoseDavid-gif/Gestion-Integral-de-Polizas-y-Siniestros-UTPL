@@ -185,6 +185,56 @@
                 </div>
             </div>
 
+            <div class="card mt-4 mb-5">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Estado de Liquidación</h5>
+                </div>
+                <div class="card-body">
+                    
+                    {% if siniestro.finiquito %}
+                        <div class="alert alert-success border-success">
+                            <h4 class="alert-heading">✅ Siniestro Liquidado</h4>
+                            <hr>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <strong>Fecha Finiquito:</strong><br>
+                                    {{ siniestro.finiquito.fecha_finiquito }}
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>Total Reclamado:</strong><br>
+                                    ${{ siniestro.finiquito.valor_total_reclamo }}
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>Deducibles/Depreciación:</strong><br>
+                                    - ${{ siniestro.finiquito.valor_deducible }} / - ${{ siniestro.finiquito.valor_depreciacion }}
+                                </div>
+                                <div class="col-md-3">
+                                    <strong class="text-success" style="font-size: 1.2em;">Valor Pago Final:</strong><br>
+                                    <span class="badge bg-success p-2" style="font-size: 1em;">
+                                        ${{ siniestro.finiquito.valor_final_pago }}
+                                    </span>
+                                </div>
+                            </div>
+                            {% if siniestro.finiquito.documento_firmado %}
+                                <div class="mt-3">
+                                    <a href="{{ siniestro.finiquito.documento_firmado.url }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                        📄 Ver Acta Firmada
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                    {% else %}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <p class="mb-0 text-muted">Este siniestro aún se encuentra en trámite y no ha sido cerrado económicamente.</p>
+                            <a href="{% url 'crear_finiquito' siniestro.id %}" class="btn btn-primary">
+                                💰 Generar Finiquito / Liquidación
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
             <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-body">
                     <h6 class="fw-bold mb-3">Acciones de Control</h6>

@@ -1,4 +1,4 @@
-from .models import Usuario, Poliza, Siniestro, Factura, DocumentoSiniestro, ResponsableCustodio
+from .models import Usuario, Poliza, Siniestro, Factura, DocumentoSiniestro, ResponsableCustodio, Finiquito
 from django.shortcuts import get_object_or_404
 
 class UsuarioRepository:
@@ -108,19 +108,43 @@ class SiniestroRepository:
     def update(siniestro_id, data):
         siniestro = get_object_or_404(Siniestro, id=siniestro_id)
         
-        # Actualizamos campos permitidos
-        siniestro.fecha_siniestro = data.get('fecha_siniestro')
-        siniestro.tipo_siniestro = data.get('tipo_siniestro')
-        siniestro.custodio = data.get('custodio') # Actualizar custodio si cambió
-        siniestro.nombre_bien = data.get('nombre_bien')
-        siniestro.ubicacion_bien = data.get('ubicacion_bien')
-        siniestro.causa_siniestro = data.get('causa_siniestro')
-        
-        # Si vienen campos financieros/estado en el form de edición, los actualizamos
+        # Lista para llevar registro de qué campos estamos cambiando
+        campos_a_actualizar = []
+
+        # Actualizamos solo si el campo viene en el diccionario 'data'
+        if 'fecha_siniestro' in data:
+            siniestro.fecha_siniestro = data.get('fecha_siniestro')
+            campos_a_actualizar.append('fecha_siniestro')
+            
+        if 'tipo_siniestro' in data:
+            siniestro.tipo_siniestro = data.get('tipo_siniestro')
+            campos_a_actualizar.append('tipo_siniestro')
+            
+        if 'custodio' in data:
+            siniestro.custodio = data.get('custodio')
+            campos_a_actualizar.append('custodio')
+            
+        if 'nombre_bien' in data:
+            siniestro.nombre_bien = data.get('nombre_bien')
+            campos_a_actualizar.append('nombre_bien')
+            
+        if 'ubicacion_bien' in data:
+            siniestro.ubicacion_bien = data.get('ubicacion_bien')
+            campos_a_actualizar.append('ubicacion_bien')
+            
+        if 'causa_siniestro' in data:
+            siniestro.causa_siniestro = data.get('causa_siniestro')
+            campos_a_actualizar.append('causa_siniestro')
+            
         if 'estado_tramite' in data:
             siniestro.estado_tramite = data.get('estado_tramite')
+            campos_a_actualizar.append('estado_tramite')
+
+        # EL CAMBIO CLAVE: 
+        # Si hay campos para actualizar, usamos update_fields
+        if campos_a_actualizar:
+            siniestro.save(update_fields=campos_a_actualizar)
         
-        siniestro.save()
         return siniestro
     
     
@@ -205,3 +229,22 @@ class CustodioRepository:
     @staticmethod
     def delete(custodio_id):
         return ResponsableCustodio.objects.filter(id=custodio_id).delete()
+
+class FiniquitoRepository:
+    """Repositorio para manejo de Finiquitos (Cierre de Siniestros)"""
+
+    @staticmethod
+    def create(datos_finiquito):
+        """
+        Crea el registro de finiquito.
+        Nota: Los cálculos ya deben venir listos desde el Servicio.
+        """
+        return Finiquito.objects.create(**datos_finiquito)
+
+    @staticmethod
+    def get_by_siniestro(siniestro_id):
+        """Busca si existe un finiquito para un siniestro dado"""
+        try:
+            return Finiquito.objects.get(siniestro_id=siniestro_id)
+        except Finiquito.DoesNotExist:
+            return None

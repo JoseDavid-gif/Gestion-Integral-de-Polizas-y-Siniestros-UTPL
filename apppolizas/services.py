@@ -5,10 +5,12 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate
 
 from datetime import date
-from .models import Usuario, Poliza, Siniestro, Factura
-from .repositories import UsuarioRepository, PolizaRepository, SiniestroRepository, FacturaRepository, DocumentoRepository, CustodioRepository
-from django.core.exceptions import ValidationError
+from decimal import Decimal
+from .models import Usuario, Poliza, Siniestro, Factura, Finiquito
+from .repositories import UsuarioRepository, PolizaRepository, SiniestroRepository, FacturaRepository, DocumentoRepository, CustodioRepository, FiniquitoRepository
 import os
+
+from django.db import transaction
 
 
 class AuthService:
@@ -240,3 +242,58 @@ class CustodioService:
             CustodioRepository.delete(custodio_id)
         except Exception as e:
             raise ValidationError("No se puede eliminar: El custodio tiene siniestros asociados.")
+
+class FiniquitoService:
+    """Lógica de negocio para Liquidación de Siniestros"""
+
+    @staticmethod
+    def liquidar_siniestro(siniestro_id, data, archivo_firmado, usuario):
+        """
+        Procesa la liquidación: Cálculos, creación de registro y cambio de estado.
+        Todo envuelto en una transacción atómica para evitar datos inconsistentes.
+        """
+        # 1. Obtener Siniestro
+        siniestro = SiniestroRepository.get_by_id(siniestro_id)
+        if not siniestro:
+            raise ValidationError("El siniestro no existe.")
+
+        # 2. Validar que no esté ya liquidado (Evita duplicados lógicos)
+        if siniestro.estado_tramite == 'LIQUIDADO':
+            raise ValidationError("Este siniestro ya ha sido liquidado.")
+
+        # 3. Lógica de Cálculo Financiero 
+        valor_reclamo = Decimal(data['valor_total_reclamo'])
+        deducible = Decimal(data['valor_deducible'])
+        depreciacion = Decimal(data['valor_depreciacion'])
+
+        # Fórmula: Reclamo - Deducible - Depreciación
+        valor_final = valor_reclamo - deducible - depreciacion
+
+        if valor_final < 0:
+            valor_final = Decimal('0.00')
+
+        # 4. Preparar datos para persistencia
+        datos_finiquito = {
+            'siniestro': siniestro,
+            'fecha_finiquito': data['fecha_finiquito'],
+            'id_finiquito': data.get('id_finiquito'),
+            'valor_total_reclamo': valor_reclamo,
+            'valor_deducible': deducible,
+            'valor_depreciacion': depreciacion,
+            'valor_final_pago': valor_final,
+            'documento_firmado': archivo_firmado,
+            'pagado_a_usuario': False 
+        }
+
+        # --- INICIO DE TRANSACCIÓN ---
+        with transaction.atomic():
+            # 5. Guardar Finiquito (Repositorio)
+            # Si esto falla (ej. error de almacenamiento en MinIO), se detiene aquí.
+            finiquito = FiniquitoRepository.create(datos_finiquito)
+
+            # 6. Actualizar Estado del Siniestro
+            # Si esto falla (ej. IntegrityError por campos nulos), se hace ROLLBACK del paso 5.
+            SiniestroRepository.update(siniestro.id, {'estado_tramite': 'LIQUIDADO'})
+
+            return finiquito
+        # --- FIN DE TRANSACCIÓN ---

@@ -22,6 +22,7 @@ from .views import (
     CustodioListView, 
     CustodioUpdateView, 
     CustodioDeleteView,
+    FiniquitoCreateView,
 )
 
 urlpatterns = [
@@ -68,4 +69,7 @@ urlpatterns = [
     path('custodios/', CustodioListView.as_view(), name='custodios_list'),
     path('custodios/editar/<int:pk>/', CustodioUpdateView.as_view(), name='custodio_update'),
     path('custodios/eliminar/<int:pk>/', CustodioDeleteView.as_view(), name='custodio_delete'),
+
+    # GESTIÓN DE FINIQUITOS
+    path('siniestros/<int:siniestro_id>/finiquitar/', FiniquitoCreateView.as_view(), name='crear_finiquito'),
 ]

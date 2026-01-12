@@ -10,7 +10,7 @@ from django.template.loader import get_template
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView, View, DetailView
-
+from datetime import date
 
 from xhtml2pdf import pisa
 
@@ -18,9 +18,9 @@ from apppolizas.models import Poliza, Siniestro, Factura, DocumentoSiniestro
 from django.views.generic import DetailView
 
 
-from .forms import PolizaForm, SiniestroPorPolizaForm, SiniestroForm, SiniestroEditForm, FacturaForm, DocumentoSiniestroForm, CustodioForm
-from .repositories import SiniestroRepository, UsuarioRepository
-from .services import AuthService, PolizaService, SiniestroService, FacturaService, DocumentoService, CustodioService
+from .forms import PolizaForm, SiniestroPorPolizaForm, SiniestroForm, SiniestroEditForm, FacturaForm, DocumentoSiniestroForm, CustodioForm, FiniquitoForm
+from .repositories import SiniestroRepository, UsuarioRepository, FiniquitoRepository
+from .services import AuthService, PolizaService, SiniestroService, FacturaService, DocumentoService, CustodioService, FiniquitoService
 
 
 # =====================================================
@@ -624,3 +624,64 @@ class CustodioDeleteView(LoginRequiredMixin, View):
         except ValidationError as e:
             messages.error(request, str(e)) # Maneja el error si tiene siniestros
         return redirect('custodios_list')
+
+class FiniquitoCreateView(LoginRequiredMixin, View):
+    template_name = 'finiquito_create.html'
+
+    def get(self, request, siniestro_id):
+        print(f"--- DEBUG: Entrando al GET de FiniquitoCreateView para Siniestro {siniestro_id} ---")
+        siniestro = SiniestroRepository.get_by_id(siniestro_id)
+        print(f"--- DEBUG: Resultado de búsqueda siniestro: {siniestro} ---")
+
+        # SEGURIDAD 1: Verificar que el siniestro existe
+        if not siniestro:
+            print(f"--- DEBUG: Siniestro {siniestro_id} no existe ---")
+            messages.error(request, "El siniestro no existe.")
+            return redirect('siniestros')
+
+        # SEGURIDAD 2: Verificar estado o existencia de finiquito
+        ya_tiene_finiquito = FiniquitoRepository.get_by_siniestro(siniestro_id)
+        print(f"--- DEBUG: ¿Ya tiene finiquito? {ya_tiene_finiquito} ---")
+
+        if siniestro.estado_tramite == 'LIQUIDADO' or ya_tiene_finiquito:
+            print(f"--- DEBUG: Siniestro {siniestro_id} ya liquidado o con finiquito existente ---")
+            messages.warning(request, "Este siniestro ya ha sido liquidado y no permite nuevas acciones.")
+            return redirect('siniestro_detail', pk=siniestro_id)
+
+        # Si pasa las validaciones, mostramos el formulario
+        form = FiniquitoForm(initial={'fecha_finiquito': date.today()})
+        print(f"--- DEBUG: Mostrando formulario de finiquito para siniestro {siniestro_id} ---")
+        return render(request, self.template_name, {
+            'form': form,
+            'siniestro': siniestro
+        })
+
+    def post(self, request, siniestro_id):
+        print(f"--- DEBUG: Recibiendo POST para Siniestro {siniestro_id} ---")
+        form = FiniquitoForm(request.POST, request.FILES)
+        print(f"--- DEBUG: Datos recibidos en POST: {request.POST} ---")
+        print(f"--- DEBUG: Archivos recibidos en POST: {request.FILES} ---")
+
+        if form.is_valid():
+            print(f"--- DEBUG: Formulario válido para Siniestro {siniestro_id} ---")
+            try:
+                # Llamamos al servicio para calcular y guardar
+                finiquito = FiniquitoService.liquidar_siniestro(
+                    siniestro_id=siniestro_id,
+                    data=form.cleaned_data,
+                    archivo_firmado=request.FILES.get('documento_firmado'),
+                    usuario=request.user
+                )
+                print(f"--- DEBUG: Finiquito creado correctamente: {finiquito} ---")
+                messages.success(request, f"Siniestro Liquidado. Valor a Pagar: ${finiquito.valor_final_pago}")
+                return redirect('siniestro_detail', pk=siniestro_id)
+
+            except ValidationError as e:
+                print(f"--- DEBUG: Error de validación al liquidar siniestro {siniestro_id}: {e} ---")
+                messages.error(request, str(e))
+        else:
+            print(f"--- DEBUG: Errores del formulario: {form.errors} ---")
+
+        siniestro = SiniestroRepository.get_by_id(siniestro_id)
+        print(f"--- DEBUG: Renderizando nuevamente formulario por error en POST para siniestro {siniestro_id} ---")
+        return render(request, self.template_name, {'form': form, 'siniestro': siniestro})

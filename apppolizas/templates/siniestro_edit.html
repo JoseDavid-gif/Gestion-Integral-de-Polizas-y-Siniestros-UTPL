@@ -55,6 +55,14 @@
                         {% endif %}
                     </div>
 
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Estado del Trámite</label>
+                        {{ form.estado_tramite }}
+                        {% if form.estado_tramite.errors %}
+                            <div class="text-danger small">{{ form.estado_tramite.errors }}</div>
+                        {% endif %}
+                    </div>
+
                     <div class="col-12 mt-4">
                         <div class="p-3 bg-light rounded border border-primary-subtle">
                             <label class="form-label fw-bold text-dark">

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Poliza, Siniestro, Factura, ResponsableCustodio, Aseguradora, Broker
+from .models import Poliza, Siniestro, Factura, ResponsableCustodio, Aseguradora, Broker, Finiquito
 
 class LoginForm(forms.Form):
     username = forms.CharField(
@@ -87,12 +87,15 @@ class SiniestroForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Esto asegura que la lista venga SIEMPRE de la base de datos actualizada
-        # y no sea "dato quemado".
-        self.fields['poliza'].queryset = Poliza.objects.filter(estado=True)
-        self.fields['custodio'].queryset = ResponsableCustodio.objects.all().order_by('nombre_completo')
-        self.fields['custodio'].label = "Responsable / Custodio del Bien"
-        self.fields['custodio'].empty_label = "Seleccione un Funcionario..."
+        
+        # USA ESTA LÓGICA CON CONDICIONALES:
+        if 'poliza' in self.fields:
+            self.fields['poliza'].queryset = Poliza.objects.filter(estado=True)
+            
+        if 'custodio' in self.fields:
+            self.fields['custodio'].queryset = ResponsableCustodio.objects.all().order_by('nombre_completo')
+            self.fields['custodio'].label = "Responsable / Custodio del Bien"
+            self.fields['custodio'].empty_label = "Seleccione un Funcionario..."
 
 class SiniestroPorPolizaForm(forms.ModelForm):
     class Meta:
@@ -145,7 +148,7 @@ class SiniestroEditForm(SiniestroForm):
             'causa_siniestro': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'nombre_bien': forms.TextInput(attrs={'class': 'form-control'}),
             
-            # Campos adicionales que SÍ se pueden editar en esta etapa (a diferencia de la creación)
+            # Campos adicionales que SÍ se pueden editar en esta etapa
             'estado_tramite': forms.Select(attrs={'class': 'form-select'}),
             'cobertura_aplicada': forms.TextInput(attrs={'class': 'form-control'}),
             'valor_reclamo': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
@@ -160,6 +163,7 @@ class SiniestroEditForm(SiniestroForm):
             'serie': forms.TextInput(attrs={'class': 'form-control'}),
             'codigo_activo': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
 
 # Factura form
 class FacturaForm(forms.ModelForm):
@@ -206,4 +210,30 @@ class CustodioForm(forms.ModelForm):
         }
         labels = {
             'identificacion': 'Cédula o Identificación',
+        }
+
+class FiniquitoForm(forms.ModelForm):
+    class Meta:
+        model = Finiquito
+        fields = [
+            'id_finiquito', 
+            'fecha_finiquito', 
+            'valor_total_reclamo', 
+            'valor_deducible', 
+            'valor_depreciacion', 
+            'documento_firmado'
+        ]
+        widgets = {
+            'fecha_finiquito': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'id_finiquito': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. LIQ-2024-001'}),
+            'valor_total_reclamo': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'valor_deducible': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'valor_depreciacion': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'value': 0}),
+            'documento_firmado': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'valor_total_reclamo': 'Monto Bruto del Reclamo',
+            'valor_deducible': 'Deducible Aplicado (-)',
+            'valor_depreciacion': 'Depreciación (-)',
+            'documento_firmado': 'Acta de Finiquito Firmada (PDF)'
         }
