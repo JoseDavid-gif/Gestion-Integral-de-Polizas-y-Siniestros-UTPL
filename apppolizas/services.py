@@ -155,8 +155,8 @@ class SiniestroService:
             NotificacionRepository.crear({
                 'usuario': usuario,
                 'tipo_alerta': 'OTRO', 
-                # AQUÍ QUITAMOS EL SIGNO ⚠️, AHORA ES SOLO TEXTO:
-                'mensaje': f"Nuevo Siniestro registrado en la póliza {poliza.numero_poliza}. Bien afectado: {siniestro.nombre_bien}",
+                # AQUÍ USAMOS EL BIEN PARA OBTENER EL NOMBRE:
+                'mensaje': f"Nuevo Siniestro registrado en la póliza {poliza.numero_poliza}. Bien afectado: {siniestro.bien.detalle}",
                 'estado': 'PENDIENTE',
                 'id_referencia': str(siniestro.id)
             })

@@ -88,14 +88,19 @@ class SiniestroRepository:
             poliza=poliza,
             
             # Asignamos el Custodio que viene del formulario
-            custodio=data.get('custodio'), 
+            custodio=data.get('custodio'),
+            
+            # Asignamos el Bien que viene del formulario
+            bien=data.get('bien'),
             
             # Datos básicos
             fecha_siniestro=data.get('fecha_siniestro'),
             tipo_siniestro=data.get('tipo_siniestro'),
             ubicacion_bien=data.get('ubicacion_bien'),
             causa_siniestro=data.get('causa_siniestro'),
-            nombre_bien=data.get('nombre_bien'),
+            
+            # Datos opcionales
+            cobertura_aplicada=data.get('cobertura_aplicada'),
             
             # Datos de auditoría
             usuario_gestor=usuario,
@@ -107,6 +112,12 @@ class SiniestroRepository:
     @staticmethod
     def update(siniestro_id, data):
         siniestro = get_object_or_404(Siniestro, id=siniestro_id)
+        
+        print("🔍 DEPURACIÓN - ACTUALIZACIÓN DE SINIESTRO")
+        print(f"ANTES - Bien actual: {siniestro.bien}")
+        print(f"ANTES - Custodio actual: {siniestro.custodio}")
+        print(f"NUEVO - Bien a asignar: {data.get('bien')}")
+        print(f"NUEVO - Custodio a asignar: {data.get('custodio')}")
         
         # Lista para llevar registro de qué campos estamos cambiando
         campos_a_actualizar = []
@@ -124,6 +135,12 @@ class SiniestroRepository:
             siniestro.custodio = data.get('custodio')
             campos_a_actualizar.append('custodio')
             
+        # ✅ LÍNEA FALTANTE - ASIGNAR EL BIEN
+        if 'bien' in data:
+            siniestro.bien = data.get('bien')
+            campos_a_actualizar.append('bien')
+            print("✅ Bien asignado correctamente")
+            
         if 'nombre_bien' in data:
             siniestro.nombre_bien = data.get('nombre_bien')
             campos_a_actualizar.append('nombre_bien')
@@ -140,10 +157,24 @@ class SiniestroRepository:
             siniestro.estado_tramite = data.get('estado_tramite')
             campos_a_actualizar.append('estado_tramite')
 
+        # Campos opcionales adicionales
+        if 'cobertura_aplicada' in data:
+            siniestro.cobertura_aplicada = data.get('cobertura_aplicada')
+            campos_a_actualizar.append('cobertura_aplicada')
+            
+        if 'valor_reclamo_estimado' in data and data.get('valor_reclamo_estimado') is not None:
+            siniestro.valor_reclamo_estimado = data.get('valor_reclamo_estimado')
+            campos_a_actualizar.append('valor_reclamo_estimado')
+
         # EL CAMBIO CLAVE: 
         # Si hay campos para actualizar, usamos update_fields
         if campos_a_actualizar:
+            print(f"🔄 Guardando cambios en campos: {campos_a_actualizar}")
             siniestro.save(update_fields=campos_a_actualizar)
+            print(f"✅ DESPUÉS - Bien actualizado: {siniestro.bien}")
+            print(f"✅ DESPUÉS - Custodio actualizado: {siniestro.custodio}")
+        else:
+            print("⚠️ No hay campos para actualizar")
         
         return siniestro
     
