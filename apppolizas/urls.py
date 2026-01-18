@@ -20,8 +20,9 @@ from .views import (
     SubirEvidenciaView,
     SiniestroDeleteEvidenciaView, 
     CustodioListView, 
-    CustodioUpdateView, 
-    CustodioDeleteView,
+    CustodioDetailApiView,     
+    BienesPorCustodioView,     
+    BienDetailApiView,        
     FiniquitoCreateView,
     lista_notificaciones,
     marcar_notificacion_leida,
@@ -65,17 +66,22 @@ urlpatterns = [
     path('siniestros/<int:siniestro_id>/subir-evidencia/', SubirEvidenciaView.as_view(), name='subir_evidencia'),
     path('documentos/<int:pk>/eliminar/', SiniestroDeleteEvidenciaView.as_view(), name='eliminar_evidencia'),
 
+
     # GESTIÓN DE CUSTODIOS
     path('custodios/', CustodioListView.as_view(), name='custodios_list'),
-    path('custodios/editar/<int:pk>/', CustodioUpdateView.as_view(), name='custodio_update'),
-    path('custodios/eliminar/<int:pk>/', CustodioDeleteView.as_view(), name='custodio_delete'),
+    # API JSON para el modal de detalle custodio
+    path('api/custodios/<int:pk>/', CustodioDetailApiView.as_view(), name='api_custodio_detail'),
+    # GESTIÓN DE BIENES
+    path('custodios/<int:custodio_id>/bienes/', BienesPorCustodioView.as_view(), name='bienes_custodio_list'),
+    # API JSON para el modal de detalle bien
+    path('api/bienes/<int:pk>/', BienDetailApiView.as_view(), name='api_bien_detail'),
+
 
     # GESTIÓN DE FINIQUITOS
     path('siniestros/<int:siniestro_id>/finiquitar/', FiniquitoCreateView.as_view(), name='crear_finiquito'),
 
     
     # GESTIÓN DE NOTIFICACIONES
-    
     path('notificaciones/', lista_notificaciones, name='lista_notificaciones'),
     path('notificaciones/leer/<int:notificacion_id>/', marcar_notificacion_leida, name='marcar_notificacion_leida'),
 ]

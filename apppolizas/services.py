@@ -7,7 +7,7 @@ from django.contrib.auth import authenticate
 from datetime import date
 from decimal import Decimal
 from .models import Usuario, Poliza, Siniestro, Factura, Finiquito, Notificacion
-from .repositories import UsuarioRepository, PolizaRepository, SiniestroRepository, FacturaRepository, DocumentoRepository, CustodioRepository, FiniquitoRepository, NotificacionRepository
+from .repositories import UsuarioRepository, PolizaRepository, SiniestroRepository, FacturaRepository, DocumentoRepository, CustodioRepository, FiniquitoRepository, NotificacionRepository, BienRepository
 import os
 
 from django.db import transaction
@@ -285,6 +285,27 @@ class CustodioService:
             CustodioRepository.delete(custodio_id)
         except Exception as e:
             raise ValidationError("No se puede eliminar: El custodio tiene siniestros asociados.")
+
+
+class BienService:
+    """Servicio de Negocio para gestión de Bienes"""
+
+    @staticmethod
+    def listar_por_custodio(custodio_id):
+        # Validamos que el custodio exista antes de buscar sus bienes
+        custodio = CustodioRepository.get_by_id(custodio_id)
+        if not custodio:
+            raise ValidationError("El custodio solicitado no existe.")
+        
+        return BienRepository.get_by_custodio(custodio_id)
+
+    @staticmethod
+    def obtener_detalle_bien(bien_id):
+        bien = BienRepository.get_by_id(bien_id)
+        if not bien:
+            raise ValidationError("El bien no existe.")
+        return bien
+
 
 class FiniquitoService:
     """Lógica de negocio para Liquidación de Siniestros"""

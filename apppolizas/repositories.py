@@ -1,4 +1,4 @@
-from .models import Usuario, Poliza, Siniestro, Factura, DocumentoSiniestro, ResponsableCustodio, Finiquito, Notificacion
+from .models import Usuario, Poliza, Siniestro, Factura, DocumentoSiniestro, ResponsableCustodio, Finiquito, Notificacion, Bien
 from django.shortcuts import get_object_or_404
 
 class UsuarioRepository:
@@ -229,6 +229,24 @@ class CustodioRepository:
     @staticmethod
     def delete(custodio_id):
         return ResponsableCustodio.objects.filter(id=custodio_id).delete()
+
+class BienRepository:
+    """Repositorio para acceso a datos de Activos Fijos (Bienes)"""
+
+    @staticmethod
+    def get_by_custodio(custodio_id):
+        """Obtener todos los bienes asignados a un custodio"""
+        return Bien.objects.filter(custodio_id=custodio_id).order_by('codigo')
+
+    @staticmethod
+    def get_by_id(bien_id):
+        """Obtener un bien específico"""
+        try:
+            # Usamos select_related para traer datos del custodio en una sola consulta si fuera necesario
+            return Bien.objects.select_related('custodio').get(id=bien_id)
+        except Bien.DoesNotExist:
+            return None
+
 
 class FiniquitoRepository:
     """Repositorio para manejo de Finiquitos (Cierre de Siniestros)"""

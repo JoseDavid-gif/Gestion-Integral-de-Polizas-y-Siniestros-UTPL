@@ -1,0 +1,240 @@
+{% extends 'master/masteranalista.html' %}
+{% block title %}Bienes Asignados{% endblock %}
+
+{% block admin_content %}
+<div class="container-fluid">
+    <div class="mb-4">
+        <a href="{% url 'custodios_list' %}" class="btn btn-outline-secondary mb-3">
+            <i class="fas fa-arrow-left"></i> Volver a Custodios
+        </a>
+        <h3>Bienes asignados a: <span class="text-primary">{{ custodio.nombre_completo }}</span></h3>
+        <p class="text-muted">Departamento: {{ custodio.departamento }} | Cédula: {{ custodio.identificacion }}</p>
+    </div>
+
+    <div class="card shadow border-0">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="tablaBienes" class="table table-striped table-hover" style="width:100%">
+                    <thead class="table-dark text-white">
+                        <tr>
+                            <th>Código</th>
+                            <th>Descripción Breve</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in bienes %}
+                        <tr>
+                            <td><strong>{{ b.codigo }}</strong></td>
+                            <td>{{ b.detalle|truncatechars:50 }}</td>
+                            <td>
+                                {% if b.estado_fisico == 'B' %}
+                                    <span class="badge bg-success">Bueno</span>
+                                {% elif b.estado_fisico == 'R' %}
+                                    <span class="badge bg-warning text-dark">Regular</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Malo</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-info text-white btn-detalle-bien" 
+                                        data-id="{{ b.id }}"
+                                        title="Ver Ficha Técnica">
+                                    <i class="fas fa-search-plus"></i> Detalle
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalDetalleBien" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-white border-0 py-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="modal-title fw-bold text-dark mb-1">Ficha Técnica del Bien</h5>
+                        <p class="text-muted small mb-0">Información completa del activo fijo</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="display:none;"></button>
+                </div>
+            </div>
+            <div class="modal-body p-4">
+                <div id="loadingBien" class="text-center">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+                <div id="contentBien" style="display:none;">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="bg-primary bg-opacity-10 p-2 rounded-circle me-3">
+                                            <i class="fas fa-barcode text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-muted small mb-0">Código Activo</p>
+                                            <p class="fw-bold text-primary mb-0" id="bCodigo"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="bg-success bg-opacity-10 p-2 rounded-circle me-3">
+                                            <i class="fas fa-hashtag text-success"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-muted small mb-0">Código BAAN V</p>
+                                            <p class="fw-bold text-dark mb-0" id="bBaan"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="bg-info bg-opacity-10 p-2 rounded-circle me-3">
+                                            <i class="fas fa-tag text-info"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-muted small mb-0">Marca</p>
+                                            <p class="fw-bold text-dark mb-0" id="bMarca"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="bg-warning bg-opacity-10 p-2 rounded-circle me-3">
+                                            <i class="fas fa-cube text-warning"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-muted small mb-0">Modelo</p>
+                                            <p class="fw-bold text-dark mb-0" id="bModelo"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="bg-secondary bg-opacity-10 p-2 rounded-circle me-3">
+                                            <i class="fas fa-fingerprint text-secondary"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-muted small mb-0">Serie</p>
+                                            <p class="fw-bold text-dark mb-0" id="bSerie"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="bg-danger bg-opacity-10 p-2 rounded-circle me-3">
+                                            <i class="fas fa-heartbeat text-danger"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-muted small mb-0">Estado Físico</p>
+                                            <p class="fw-bold text-dark mb-0"><span id="bEstado" class="badge bg-secondary"></span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-start mb-2">
+                                        <div class="bg-primary bg-opacity-10 p-2 rounded-circle me-3">
+                                            <i class="fas fa-align-left text-primary"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <p class="text-muted small mb-0">Descripción / Detalle Completo</p>
+                                            <p class="fw-bold text-dark mb-0" id="bDetalle"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-white border-0 px-4 py-3">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // Inicializar DataTable
+        $('#tablaBienes').DataTable({
+            language: { url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json" },
+            pageLength: 10
+        });
+
+        // Click en Ver Detalle Bien
+        $('.btn-detalle-bien').click(function () {
+            var bienId = $(this).data('id');
+            var url = "/api/bienes/" + bienId + "/"; 
+
+            $('#loadingBien').show();
+            $('#contentBien').hide();
+            $('#modalDetalleBien').modal('show');
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        var d = response.data;
+                        $('#bCodigo').text(d.codigo);
+                        $('#bBaan').text(d.baan_v);
+                        $('#bMarca').text(d.marca);
+                        $('#bModelo').text(d.modelo);
+                        $('#bSerie').text(d.serie);
+                        $('#bEstado').text(d.estado_fisico);
+                        $('#bDetalle').text(d.detalle);
+
+                        $('#loadingBien').hide();
+                        $('#contentBien').fadeIn();
+                    }
+                },
+                error: function () {
+                    alert('Error al obtener datos del bien');
+                    $('#modalDetalleBien').modal('hide');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

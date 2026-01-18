@@ -20,7 +20,7 @@ from django.views.generic import DetailView
 
 from .forms import PolizaForm, SiniestroPorPolizaForm, SiniestroForm, SiniestroEditForm, FacturaForm, DocumentoSiniestroForm, CustodioForm, FiniquitoForm
 from .repositories import SiniestroRepository, UsuarioRepository, FiniquitoRepository
-from .services import AuthService, PolizaService, SiniestroService, FacturaService, DocumentoService, CustodioService, FiniquitoService, NotificacionService
+from .services import AuthService, PolizaService, SiniestroService, FacturaService, DocumentoService, CustodioService, FiniquitoService, NotificacionService, BienService
 
 
 # =====================================================
@@ -566,8 +566,9 @@ class SiniestroDeleteEvidenciaView(LoginRequiredMixin, View):
         return redirect('siniestro_detail', pk=siniestro_id)
     
 
+# 1. LISTADO DE CUSTODIOS (Pantalla Principal)
 class CustodioListView(LoginRequiredMixin, View):
-    template_name = 'custodios.html' # Crearemos este template en el paso 6
+    template_name = 'custodios.html'
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.rol != 'analista':
@@ -575,72 +576,69 @@ class CustodioListView(LoginRequiredMixin, View):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request):
-        custodios = CustodioService.listar_custodios()
-        form = CustodioForm()
-        return render(request, self.template_name, {
-            'custodios': custodios, 
-            'form': form
-        })
-
-    def post(self, request):
-        form = CustodioForm(request.POST)
-        if form.is_valid():
-            try:
-                CustodioService.crear_custodio(form.cleaned_data)
-                messages.success(request, 'Custodio registrado exitosamente')
-                return redirect('custodios_list')
-            except Exception as e:
-                messages.error(request, f"Error al crear: {str(e)}")
-        
-        # Si falla, recargamos con errores
+        # Solo obtenemos la lista para pintarla en el template
         custodios = CustodioService.listar_custodios()
         return render(request, self.template_name, {
-            'custodios': custodios, 
-            'form': form
+            'custodios': custodios
         })
 
-class CustodioUpdateView(LoginRequiredMixin, View):
-    template_name = 'custodio_edit.html' # Crearemos este template
-
-    def dispatch(self, request, *args, **kwargs):
-        if request.user.rol != 'analista':
-            return redirect('dashboard_analista')
-        return super().dispatch(request, *args, **kwargs)
-
+# 2. DETALLE DE CUSTODIO (API JSON para el Modal)
+class CustodioDetailApiView(LoginRequiredMixin, View):
     def get(self, request, pk):
         try:
             custodio = CustodioService.obtener_custodio(pk)
-            form = CustodioForm(instance=custodio)
-            return render(request, self.template_name, {'form': form, 'custodio': custodio})
-        except ValidationError:
-            return redirect('custodios_list')
+            data = {
+                'nombre': custodio.nombre_completo,
+                'identificacion': custodio.identificacion,
+                'correo': custodio.correo,
+                'departamento': custodio.departamento,
+                'ciudad': custodio.ciudad if custodio.ciudad else 'N/A',
+                'edificio': custodio.edificio if custodio.edificio else 'N/A',
+                'puesto': custodio.puesto if custodio.puesto else 'N/A',
+            }
+            return JsonResponse({'success': True, 'data': data})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=404)
 
-    def post(self, request, pk):
-        try:
-            custodio = CustodioService.obtener_custodio(pk)
-            form = CustodioForm(request.POST, instance=custodio)
-            if form.is_valid():
-                CustodioService.actualizar_custodio(pk, form.cleaned_data)
-                messages.success(request, 'Custodio actualizado')
-                return redirect('custodios_list')
-        except ValidationError as e:
-            messages.error(request, str(e))
-            
-        return render(request, self.template_name, {'form': form, 'custodio': custodio})
+# 3. LISTADO DE BIENES DE UN CUSTODIO (Nueva Pantalla)
+class BienesPorCustodioView(LoginRequiredMixin, View):
+    template_name = 'bienes_custodio.html'
 
-class CustodioDeleteView(LoginRequiredMixin, View):
     def dispatch(self, request, *args, **kwargs):
         if request.user.rol != 'analista':
             return redirect('dashboard_analista')
         return super().dispatch(request, *args, **kwargs)
 
-    def post(self, request, pk):
+    def get(self, request, custodio_id):
         try:
-            CustodioService.eliminar_custodio(pk)
-            messages.success(request, 'Custodio eliminado')
-        except ValidationError as e:
-            messages.error(request, str(e)) # Maneja el error si tiene siniestros
-        return redirect('custodios_list')
+            custodio = CustodioService.obtener_custodio(custodio_id)
+            bienes = BienService.listar_por_custodio(custodio_id)
+            
+            return render(request, self.template_name, {
+                'custodio': custodio,
+                'bienes': bienes
+            })
+        except ValidationError:
+            messages.error(request, "Custodio no encontrado")
+            return redirect('custodios_list')
+
+# 4. DETALLE DE BIEN (API JSON para el Modal)
+class BienDetailApiView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        try:
+            bien = BienService.obtener_detalle_bien(pk)
+            data = {
+                'codigo': bien.codigo,
+                'detalle': bien.detalle,
+                'marca': bien.marca if bien.marca else 'N/A',
+                'modelo': bien.modelo if bien.modelo else 'N/A',
+                'serie': bien.serie if bien.serie else 'N/A',
+                'estado_fisico': bien.get_estado_fisico_display(), # Obtiene el texto (Bueno/Regular/Malo)
+                'baan_v': bien.baan_v if bien.baan_v else 'N/A'
+            }
+            return JsonResponse({'success': True, 'data': data})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=404)
 
 class FiniquitoCreateView(LoginRequiredMixin, View):
     template_name = 'finiquito_create.html'
