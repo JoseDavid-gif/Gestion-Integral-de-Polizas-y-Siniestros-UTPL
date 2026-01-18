@@ -318,21 +318,64 @@ class SiniestroListView(LoginRequiredMixin, View):
 
     # views.py (SiniestroListView)
     def post(self, request, *args, **kwargs):
+        print("=== INICIANDO CREACIÓN DE SINIESTRO ===")
+        print(f"POST data recibido: {request.POST}")
+        
         form = SiniestroForm(request.POST)
+        print(f"Formulario creado: {form}")
+        print(f"Formulario es válido?: {form.is_valid()}")
+        
+        if not form.is_valid():
+            print(f"ERRORES DEL FORMULARIO: {form.errors}")
+            print(f"ERRORES NO CAMPO: {form.non_field_errors()}")
+        
         if form.is_valid():
             try:
+                print("✅ Formulario válido - Intentando crear siniestro...")
+                print(f"Datos limpios: {form.cleaned_data}")
+                
+                # Filtrar solo los campos que el modelo Siniestro espera
+                datos_siniestro = {
+                    'poliza': form.cleaned_data['poliza'],
+                    'custodio': form.cleaned_data['custodio'],
+                    'bien': form.cleaned_data['bien'],
+                    'fecha_siniestro': form.cleaned_data['fecha_siniestro'],
+                    'tipo_siniestro': form.cleaned_data['tipo_siniestro'],
+                    'ubicacion_bien': form.cleaned_data['ubicacion_bien'],
+                    'causa_siniestro': form.cleaned_data['causa_siniestro'],
+                }
+                
+                print(f"Datos filtrados para Siniestro: {datos_siniestro}")
+                
                 # CORRECCIÓN: El nombre del parámetro debe ser poliza_id
-                SiniestroService.crear_siniestro(
+                siniestro_creado = SiniestroService.crear_siniestro(
                     poliza=form.cleaned_data['poliza'], # <--- Aquí estaba el error
-                    data=form.cleaned_data,
+                    data=datos_siniestro,  # <-- Pasar datos filtrados
                     usuario=request.user
                 )
+                print(f"✅ Siniestro creado exitosamente: {siniestro_creado}")
                 messages.success(request, "Siniestro creado")
                 return redirect('siniestros')
             except ValidationError as e:
+                print(f"❌ Error de validación al crear siniestro: {e}")
                 messages.error(request, str(e))
+            except Exception as e:
+                print(f"❌ Error inesperado al crear siniestro: {e}")
+                messages.error(request, f"Error inesperado: {str(e)}")
+        else:
+            # Si el formulario no es válido, enviamos un mensaje de alerta
+            print("❌ Formulario inválido - Mostrando error al usuario")
+            messages.error(request, "Error en el formulario. Verifique que el activo pertenezca al custodio.")
 
-
+        # IMPORTANTE: Volver a renderizar la página con el formulario que tiene los errores
+        print("🔄 Renderizando página con formulario y errores...")
+        siniestros = SiniestroService.listar_todos()
+        return render(request, self.template_name, {
+            'siniestros': siniestros,
+            'total_siniestros': siniestros.count(),
+            'total_polizas': siniestros.values('poliza').distinct().count(),
+            'form': form, # Este 'form' ahora contiene los mensajes de error
+        })
 
 
 class SiniestroPorPolizaView(LoginRequiredMixin, View):
@@ -411,25 +454,83 @@ class SiniestroEditView(LoginRequiredMixin, View):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, pk):
+        print("=== INICIANDO EDICIÓN DE SINIESTRO ===")
+        print(f"Siniestro ID solicitado: {pk}")
+        
         # Usamos el repositorio para obtener los datos
         siniestro = SiniestroRepository.get_by_id(pk)
         if not siniestro:
+            print(f"❌ Siniestro {pk} no encontrado")
             return redirect('siniestros')
-            
-        form = SiniestroEditForm(instance=siniestro)
+        
+        print(f"✅ Siniestro encontrado: {siniestro}")
+        print(f"  - Póliza: {siniestro.poliza.numero_poliza}")
+        print(f"  - Custodio actual: {siniestro.custodio}")
+        print(f"  - Bien actual: {siniestro.bien}")
+        
+        # Pre-poblamos campos que no están directamente en el modelo Siniestro
+        initial_data = {}
+        if siniestro.bien:
+            initial_data = {
+                'marca': siniestro.bien.marca,
+                'modelo': siniestro.bien.modelo,
+                'serie': siniestro.bien.serie,
+                'bien_ajax': f"{siniestro.bien.codigo} - {siniestro.bien.detalle}"
+            }
+            print(f"📋 Datos iniciales preparados: {initial_data}")
+        
+        form = SiniestroEditForm(instance=siniestro, initial=initial_data)
+        print(f"📝 Formulario de edición creado")
         return render(request, self.template_name, {'form': form, 'siniestro': siniestro})
 
     def post(self, request, pk):
+        print("=== INICIANDO ACTUALIZACIÓN DE SINIESTRO ===")
+        print(f"Siniestro ID solicitado: {pk}")
+        print(f"POST data recibido: {request.POST}")
+        
         siniestro_instancia = SiniestroRepository.get_by_id(pk)
+        if not siniestro_instancia:
+            print(f"❌ Siniestro {pk} no encontrado para actualizar")
+            return redirect('siniestros')
+        
+        print(f"✅ Siniestro encontrado para actualizar: {siniestro_instancia}")
         
         # Pasamos request.FILES por si algún día permites subir archivos aquí
         form = SiniestroEditForm(request.POST, request.FILES, instance=siniestro_instancia)
+        print(f"📝 Formulario de edición creado: {form}")
+        print(f"📝 Formulario es válido?: {form.is_valid()}")
+        
+        if not form.is_valid():
+            print(f"❌ ERRORES DEL FORMULARIO: {form.errors}")
+            print(f"❌ ERRORES NO CAMPO: {form.non_field_errors()}")
 
         if form.is_valid():
             try:
+                print("✅ Formulario válido - Intentando actualizar siniestro...")
+                print(f"📋 Datos limpios: {form.cleaned_data}")
+                
+                # Validación específica para edición
+                custodio = form.cleaned_data.get('custodio')
+                bien = form.cleaned_data.get('bien')
+                
+                if custodio and bien:
+                    print(f"🔍 Verificando integridad - Custodio: {custodio}, Bien: {bien}")
+                    print(f"🔍 Bien.custodio: {bien.custodio}")
+                    print(f"🔍 ¿Son iguales?: {bien.custodio == custodio}")
+                    
+                    if bien.custodio != custodio:
+                        error_msg = f"Error de Integridad: El bien '{bien.detalle}' no está registrado a nombre del custodio {custodio.nombre_completo}."
+                        print(f"❌ ERROR DE VALIDACIÓN: {error_msg}")
+                        messages.error(request, error_msg)
+                        return render(request, self.template_name, {'form': form, 'siniestro': siniestro_instancia})
+                    else:
+                        print("✅ Validación de integridad OK")
+                
                 # Si usas ModelForm, a veces basta con form.save(), 
                 # pero respetamos tu servicio:
-                SiniestroService.actualizar_siniestro(pk, form.cleaned_data)
+                print("🔄 Llamando al servicio de actualización...")
+                siniestro_actualizado = SiniestroService.actualizar_siniestro(pk, form.cleaned_data)
+                print(f"✅ Siniestro actualizado exitosamente: {siniestro_actualizado}")
                 
                 messages.success(request, 'Siniestro actualizado correctamente')
                 
@@ -437,12 +538,18 @@ class SiniestroEditView(LoginRequiredMixin, View):
                 return redirect('siniestro_detail', pk=pk)
                 
             except ValidationError as e:
+                print(f"❌ Error de validación al actualizar siniestro: {e}")
                 messages.error(request, str(e))
+            except Exception as e:
+                print(f"❌ Error inesperado al actualizar siniestro: {e}")
+                messages.error(request, f"Error inesperado: {str(e)}")
         else:
             # === AQUÍ ESTABA EL PROBLEMA ===
             # Antes solo hacías print(form.errors). Ahora enviamos el mensaje al usuario.
+            print("❌ Formulario inválido - Mostrando error al usuario")
             messages.error(request, "No se pudo guardar. Verifique que el Bien pertenezca al Custodio seleccionado.")
         
+        print("🔄 Renderizando página de edición con formulario y errores...")
         return render(request, self.template_name, {'form': form, 'siniestro': siniestro_instancia})
 
 class SiniestroDeleteView(LoginRequiredMixin, View):
@@ -730,11 +837,16 @@ def marcar_notificacion_leida(request, notificacion_id):
 
 
 def buscar_custodios_ajax(request):
+    print("=== AJAX BUSCANDO CUSTODIOS ===")
     term = request.GET.get('term', '')  # Lo que escribe el usuario
+    print(f"Término de búsqueda: {term}")
+    
     custodios = ResponsableCustodio.objects.filter(
         Q(nombre_completo__icontains=term) | 
         Q(identificacion__icontains=term)
     )[:20]  # Limitamos a 20 resultados para rapidez
+    
+    print(f"Custodios encontrados: {custodios.count()}")
     
     results = []
     for c in custodios:
@@ -742,27 +854,43 @@ def buscar_custodios_ajax(request):
             'id': c.id,
             'text': f"{c.nombre_completo} ({c.identificacion})"
         })
+    
+    print(f"Resultados para AJAX: {results}")
     return JsonResponse({'results': results})
 
 # Vista para buscar Bienes (Por Código) y devolver detalles
 def buscar_bienes_ajax(request):
+    print("=== AJAX BUSCANDO BIENES ===")
     term = request.GET.get('term', '')
-    # Buscamos por código o descripción
-    bienes = Bien.objects.filter(
-        Q(codigo__icontains=term) | 
-        Q(detalle__icontains=term)
-    )[:20]
+    custodio_id = request.GET.get('custodio_id', None) # Recibir el ID del custodio
+    
+    print(f"Término de búsqueda: {term}")
+    print(f"Custodio ID (filtro): {custodio_id}")
+    
+    query = Q(codigo__icontains=term) | Q(detalle__icontains=term)
+    bienes = Bien.objects.filter(query)
+    
+    print(f"Bienes encontrados (sin filtro): {bienes.count()}")
+
+    # RESTRICCIÓN: Si se envió un custodio, filtrar solo sus bienes
+    if custodio_id:
+        bienes = bienes.filter(custodio_id=custodio_id)
+        print(f"Bienes después de filtrar por custodio: {bienes.count()}")
+    
+    bienes = bienes[:20]
     
     results = []
     for b in bienes:
-        # Construimos la ubicación basada en el custodio (ya que el bien hereda ubicación)
-        ubicacion_txt = f"{b.custodio.edificio or ''} - {b.custodio.puesto or ''}"
-        
+        # Importante: Estas llaves deben coincidir con el JS
         results.append({
-            'id': b.id,
-            'text': f"{b.codigo} - {b.detalle[:40]}...",
-            # Datos extra para el autorrellenado:
+            'id': b.id,  
+            'text': f"{b.codigo} - {b.detalle[:50]}",
             'nombre_completo': b.detalle,
-            'ubicacion': ubicacion_txt
+            'marca': b.marca if b.marca else "",
+            'modelo': b.modelo if b.modelo else "",
+            'serie': b.serie if b.serie else "",
+            'ubicacion': f"{b.custodio.edificio or ''} - {b.custodio.puesto or ''}".strip(" - "),
         })
+    
+    print(f"Resultados para AJAX: {results}")
     return JsonResponse({'results': results})

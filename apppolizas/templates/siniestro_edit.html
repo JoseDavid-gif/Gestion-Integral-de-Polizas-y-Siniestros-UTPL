@@ -5,9 +5,40 @@
 <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 
 <style>
-    .admin-scroll-content { overflow-y: visible !important; height: auto !important; min-height: 100vh; }
+    /* Scroll único para el formulario */
+    .admin-scroll-content { 
+        overflow-y: auto !important; 
+        height: 100vh !important; 
+        padding-bottom: 2rem !important;
+    }
+    
+    /* Scrollbar personalizado */
+    .admin-scroll-content::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .admin-scroll-content::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+    
+    .admin-scroll-content::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+    }
+    
+    .admin-scroll-content::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+    
     /* Ajuste visual para Select2 */
     .select2-container--bootstrap-5 .select2-selection { border-color: #dee2e6; }
+    
+    /* Eliminar scroll duplicado del container */
+    .container-fluid {
+        max-height: none !important;
+        overflow-y: visible !important;
+    }
 </style>
 {% endblock %}
 
@@ -86,11 +117,25 @@
 
                     <div class="col-12">
                         <label class="form-label fw-bold">Buscar Bien (Por Código)</label>
-                        {{ form.bien }}
-                        <div class="form-text text-muted">Busque por el código del activo fijo.</div>
-                        {% if form.bien.errors %}
-                            <div class="text-danger small">{{ form.bien.errors }}</div>
+                        {{ form.bien_ajax }}
+                        <div class="form-text text-muted">Busque por el código del activo fijo. Solo mostrará bienes del custodio seleccionado.</div>
+                        {% if form.bien_ajax.errors %}
+                            <div class="text-danger small">{{ form.bien_ajax.errors }}</div>
                         {% endif %}
+                    </div>
+                    <div class="d-none">{{ form.bien }}</div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Marca</label>
+                        {{ form.marca }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Modelo</label>
+                        {{ form.modelo }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Serie / Chasis</label>
+                        {{ form.serie }}
                     </div>
 
                     <div class="col-md-6">
@@ -133,28 +178,14 @@
 <script>
 $(document).ready(function() {
     
-    // 1. Convertir el select de CUSTODIO a Buscador AJAX
+    // 1. Inicializar Select2 para el Custodio
     $('#id_custodio').select2({
         theme: 'bootstrap-5',
-        placeholder: 'Escriba nombre o cédula...',
-        allowClear: true,
-        minimumInputLength: 2, 
-        width: '100%',
-        ajax: {
-            url: "{% url 'ajax_buscar_custodios' %}",
-            dataType: 'json',
-            delay: 250,
-            data: function (params) {
-                return { term: params.term };
-            },
-            processResults: function (data) {
-                return { results: data.results };
-            }
-        }
+        width: '100%'
     });
 
-    // 2. Convertir el select de BIEN a Buscador AJAX + Autorrellenado
-    $('#id_bien').select2({
+    // 2. Configurar el Buscador de Bienes con restricción
+    $('#id_bien_ajax').select2({
         theme: 'bootstrap-5',
         placeholder: 'Escriba el código del bien...',
         allowClear: true,
@@ -165,7 +196,10 @@ $(document).ready(function() {
             dataType: 'json',
             delay: 250,
             data: function (params) {
-                return { term: params.term };
+                return {
+                    term: params.term,
+                    custodio_id: $('#id_custodio').val() // <-- ESTA ES LA RESTRICCIÓN
+                };
             },
             processResults: function (data) {
                 return { results: data.results };
@@ -173,19 +207,38 @@ $(document).ready(function() {
         }
     });
 
-    // 3. EVENTO: Cuando seleccionan un bien, rellenar los inputs de texto
-    $('#id_bien').on('select2:select', function (e) {
-        var data = e.params.data;
-        // Rellenar Nombre del Bien
-        $('#id_nombre_bien').val(data.nombre_completo);
-        // Rellenar Ubicación
-        $('#id_ubicacion_bien').val(data.ubicacion);
+    // 3. EVENTO: Al seleccionar un bien, autorrellenar campos técnicos
+    $('#id_bien_ajax').on('select2:select', function (e) {
+        var d = e.params.data;
+        console.log("Bien seleccionado en edición:", d);
+        
+        // Actualizar campos técnicos pero MANTENER el buscador con el valor seleccionado
+        $('#id_nombre_bien').val(d.nombre_completo);
+        $('#id_marca').val(d.marca);
+        $('#id_modelo').val(d.modelo);
+        $('#id_serie').val(d.serie);
+        $('#id_ubicacion_bien').val(d.ubicacion);
+        
+        // Actualizar el campo oculto real que Django guarda (id_bien)
+        $('#id_bien').val(d.id);
+        
+        // NO limpiar el campo bien_ajax - mantener la selección visible
+        console.log("Campo bien_ajax mantenido con:", d.text);
     });
 
-    // (Opcional) Si quitan la selección, limpiar campos
-    $('#id_bien').on('select2:clear', function (e) {
-        $('#id_nombre_bien').val('');
-        $('#id_ubicacion_bien').val('');
+    // 4. RESTRICCIÓN ADICIONAL: Si cambian el custodio, resetear el bien seleccionado
+    $('#id_custodio').on('change', function() {
+        $('#id_bien_ajax').val(null).trigger('change');
+        // Limpiar campos técnicos también
+        $('#id_marca, #id_modelo, #id_serie, #id_nombre_bien, #id_ubicacion_bien').val('');
+        // Limpiar campo oculto
+        $('#id_bien').val('');
+    });
+
+    // 5. Si quitan la selección del bien, limpiar campos
+    $('#id_bien_ajax').on('select2:clear', function (e) {
+        $('#id_marca, #id_modelo, #id_serie, #id_nombre_bien, #id_ubicacion_bien').val('');
+        $('#id_bien').val('');
     });
 });
 </script>

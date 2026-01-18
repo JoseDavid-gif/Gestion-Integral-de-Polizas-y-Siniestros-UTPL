@@ -1,5 +1,5 @@
 from django import forms
-from .models import Poliza, Siniestro, Factura, ResponsableCustodio, Aseguradora, Broker, Finiquito
+from .models import Poliza, Siniestro, Factura, ResponsableCustodio, Aseguradora, Broker, Finiquito, Bien
 
 class LoginForm(forms.Form):
     username = forms.CharField(
@@ -56,16 +56,74 @@ class PolizaForm(forms.ModelForm):
         if self.instance.pk and self.instance.estado:
             self.initial['estado'] = True
 
+
 # SINIESTRO FORM
 
 
+# Modifica la clase SiniestroForm para incluir los campos técnicos
 class SiniestroForm(forms.ModelForm):
+    # Campos auxiliares para mostrar info del Bien (no se guardan en BD)
+    marca = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'readonly': True}),
+        label="Marca"
+    )
+    
+    modelo = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'readonly': True}),
+        label="Modelo"
+    )
+    
+    serie = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'readonly': True}),
+        label="Serie / Chasis"
+    )
+
+    # Campo de búsqueda AJAX para el bien
+    bien_ajax = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Buscar bien por código...'}),
+        label="Buscar Bien"
+    )
+
     custodio = forms.ModelChoiceField(
         queryset=ResponsableCustodio.objects.all().order_by('nombre_completo'),
-        widget=forms.Select(attrs={'class': 'form-select'}),
+        widget=forms.Select(attrs={'class': 'form-select select2-enable'}),
         label="Responsable / Custodio",
         empty_label="-- Seleccione un Funcionario --"
     )
+    
+    def clean(self):
+        print("=== INICIANDO VALIDACIÓN DEL FORMULARIO SINIESTRO ===")
+        cleaned_data = super().clean()
+        print(f"Cleaned data inicial: {cleaned_data}")
+        
+        custodio = cleaned_data.get('custodio')
+        bien = cleaned_data.get('bien')
+        
+        print(f"Custodio seleccionado: {custodio}")
+        print(f"Bien seleccionado: {bien}")
+        
+        if custodio and bien:
+            print(f"Verificando si el bien {bien} pertenece al custodio {custodio}")
+            print(f"Bien.custodio: {bien.custodio}")
+            print(f"Custodio: {custodio}")
+            print(f"¿Son iguales?: {bien.custodio == custodio}")
+            
+            # Validar que el bien pertenezca realmente a ese custodio
+            if bien.custodio != custodio:
+                error_msg = f"Error de Integridad: El bien '{bien.detalle}' no está registrado a nombre del custodio {custodio.nombre_completo}."
+                print(f"❌ ERROR DE VALIDACIÓN: {error_msg}")
+                raise forms.ValidationError(error_msg)
+            else:
+                print("✅ Validación de integridad OK")
+        else:
+            print("⚠️ Faltan custodio o bien para validar integridad")
+            
+        print("=== VALIDACIÓN DEL FORMULARIO COMPLETADA ===")
+        return cleaned_data
 
     class Meta:
         model = Siniestro
@@ -81,34 +139,18 @@ class SiniestroForm(forms.ModelForm):
             'ubicacion_bien': forms.TextInput(attrs={'class': 'form-control'}),
             'causa_siniestro': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'nombre_bien': forms.TextInput(attrs={'class': 'form-control'}),
-            # Ocultamos la póliza si ya viene preseleccionada en la vista, o la dejamos select si es general
             'poliza': forms.Select(attrs={'class': 'form-select'}),
+            'bien': forms.Select(attrs={'class': 'form-select'}),
+            'codigo_activo': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        
-        # USA ESTA LÓGICA CON CONDICIONALES:
-        if 'poliza' in self.fields:
-            self.fields['poliza'].queryset = Poliza.objects.filter(estado=True)
-            
-        if 'custodio' in self.fields:
-            self.fields['custodio'].queryset = ResponsableCustodio.objects.all().order_by('nombre_completo')
-            self.fields['custodio'].label = "Responsable / Custodio del Bien"
-            self.fields['custodio'].empty_label = "Seleccione un Funcionario..."
-
-class SiniestroPorPolizaForm(forms.ModelForm):
-    class Meta:
-        model = Siniestro
+# Asegúrate de que SiniestroPorPolizaForm también los incluya si lo usas en el modal
+class SiniestroPorPolizaForm(SiniestroForm): # Cambia la herencia a SiniestroForm
+    class Meta(SiniestroForm.Meta):
         exclude = [
-            'poliza',
-            'usuario_gestor',
-            'fecha_notificacion',
-            'estado_tramite',
-            'valor_reclamo',
-            'deducible_aplicado',
-            'depreciacion',
-            'valor_a_pagar',
+            'poliza', 'usuario_gestor', 'fecha_notificacion', 
+            'estado_tramite', 'valor_reclamo', 'deducible_aplicado', 
+            'depreciacion', 'valor_a_pagar'
         ]
 
         widgets = {
@@ -120,7 +162,41 @@ class SiniestroPorPolizaForm(forms.ModelForm):
         }
 
 
-class SiniestroEditForm(SiniestroForm):
+class SiniestroEditForm(forms.ModelForm):
+    # Campos de solo lectura para información del bien
+    marca = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'readonly': True}),
+        label="Marca"
+    )
+    modelo = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'readonly': True}),
+        label="Modelo"
+    )
+    serie = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'readonly': True}),
+        label="Serie / Chasis"
+    )
+    
+    # El buscador AJAX
+    bien_ajax = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Buscar bien por código...'}),
+        label="Buscar Bien"
+    )
+    
+    # Campo opcional para valor estimado
+    valor_reclamo_estimado = forms.DecimalField(
+        required=False,
+        min_value=0,
+        decimal_places=2,
+        max_digits=12,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        label="Valor Reclamo Estimado"
+    )
+    
     # 1. Aseguramos que el campo custodio cargue la lista desde la BD
     custodio = forms.ModelChoiceField(
         queryset=ResponsableCustodio.objects.all().order_by('nombre_completo'),
@@ -128,6 +204,36 @@ class SiniestroEditForm(SiniestroForm):
         label="Responsable / Custodio",
         empty_label="-- Seleccione un Funcionario --"
     )
+
+    def clean(self):
+        print("=== INICIANDO VALIDACIÓN DEL FORMULARIO DE EDICIÓN SINIESTRO ===")
+        cleaned_data = super().clean()
+        print(f"Cleaned data inicial: {cleaned_data}")
+        
+        custodio = cleaned_data.get('custodio')
+        bien = cleaned_data.get('bien')
+        
+        print(f"Custodio seleccionado: {custodio}")
+        print(f"Bien seleccionado: {bien}")
+        
+        if custodio and bien:
+            print(f"Verificando si el bien {bien} pertenece al custodio {custodio}")
+            print(f"Bien.custodio: {bien.custodio}")
+            print(f"Custodio: {custodio}")
+            print(f"¿Son iguales?: {bien.custodio == custodio}")
+            
+            # Validar que el bien pertenezca realmente a ese custodio
+            if bien.custodio != custodio:
+                error_msg = f"Error de Integridad: El bien '{bien.detalle}' no está registrado a nombre del custodio {custodio.nombre_completo}."
+                print(f"❌ ERROR DE VALIDACIÓN: {error_msg}")
+                raise forms.ValidationError(error_msg)
+            else:
+                print("✅ Validación de integridad OK")
+        else:
+            print("⚠️ Faltan custodio o bien para validar integridad")
+            
+        print("=== VALIDACIÓN DEL FORMULARIO DE EDICIÓN COMPLETADA ===")
+        return cleaned_data
 
     class Meta(SiniestroForm.Meta):
         model = Siniestro
@@ -157,14 +263,6 @@ class SiniestroEditForm(SiniestroForm):
             'depreciacion': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'valor_a_pagar': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'valor_reclamo_estimado': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            
-            # Campos técnicos del bien
-            'marca': forms.TextInput(attrs={'class': 'form-control'}),
-            'modelo': forms.TextInput(attrs={'class': 'form-control'}),
-            'serie': forms.TextInput(attrs={'class': 'form-control'}),
-            'codigo_activo': forms.TextInput(attrs={'class': 'form-control'}),
-
-            
         }
 
 
