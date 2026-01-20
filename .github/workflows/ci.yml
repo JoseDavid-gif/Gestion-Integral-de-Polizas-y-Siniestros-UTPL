@@ -92,7 +92,8 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y default-libmysqlclient-dev build-essential pkg-config
+          # Añadimos libmysqlclient-dev para que 'mysqlclient' pueda instalarse
+          sudo apt-get install -y default-libmysqlclient-dev build-essential pkg-config libcairo2-dev
 
       - name: Install Python dependencies
         run: |
