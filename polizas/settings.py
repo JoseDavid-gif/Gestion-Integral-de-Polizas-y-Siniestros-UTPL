@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
+
 import os
 from pathlib import Path
 
@@ -20,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-+*k49c*6cuq%!(&$28+xwoz151p)g@#le#hsm7dykt2i-e06k9'
+SECRET_KEY = "django-insecure-+*k49c*6cuq%!(&$28+xwoz151p)g@#le#hsm7dykt2i-e06k9"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -31,44 +32,44 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'apppolizas',
-    'storages',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "apppolizas",
+    "storages",
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'polizas.urls'
+ROOT_URLCONF = "polizas.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'polizas.wsgi.application'
+WSGI_APPLICATION = "polizas.wsgi.application"
 
 
 # Database
@@ -76,15 +77,15 @@ WSGI_APPLICATION = 'polizas.wsgi.application'
 
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',   
-        'NAME': 'polizas',                      
-        'USER': 'root',             
-        'PASSWORD': 'UTPL2023',      
-        'HOST': 'localhost',                    
-        'PORT': '3306',                         
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",  
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "polizas",
+        "USER": "root",
+        "PASSWORD": "UTPL2023",
+        "HOST": "localhost",
+        "PORT": "3306",
+        "OPTIONS": {
+            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
         },
     }
 }
@@ -95,16 +96,16 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -112,9 +113,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
@@ -124,24 +125,23 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
 
-AUTH_USER_MODEL = 'apppolizas.Usuario'
+AUTH_USER_MODEL = "apppolizas.Usuario"
 
-LOGIN_URL = '/'
-
+LOGIN_URL = "/"
 
 
 # Configuración para conectar con tu MinIO local
-#AWS_ACCESS_KEY_ID = 'admin'
-#AWS_SECRET_ACCESS_KEY = 'password123'
-#AWS_STORAGE_BUCKET_NAME = 'expedientes-siniestros'
-#AWS_S3_ENDPOINT_URL = 'http://127.0.0.1:9000' # La API de MinIO corre en el 9000
-#AWS_S3_REGION_NAME = 'us-east-1' 
-#AWS_S3_SIGNATURE_VERSION = 's3v4'
+# AWS_ACCESS_KEY_ID = 'admin'
+# AWS_SECRET_ACCESS_KEY = 'password123'
+# AWS_STORAGE_BUCKET_NAME = 'expedientes-siniestros'
+# AWS_S3_ENDPOINT_URL = 'http://127.0.0.1:9000' # La API de MinIO corre en el 9000
+# AWS_S3_REGION_NAME = 'us-east-1'
+# AWS_S3_SIGNATURE_VERSION = 's3v4'
 
 # Para que MinIO no intente validar certificados SSL (ya que es local)
-#AWS_S3_VERIFY = False 
+# AWS_S3_VERIFY = False
 
 # Indicar a Django que use S3/MinIO para archivos MEDIA
 # DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
@@ -166,7 +166,7 @@ STORAGES = {
 
 
 # URL para que el navegador pueda mostrar las fotos/PDFs
-#MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/'
+# MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/'
 MEDIA_URL = f"{os.getenv('MINIO_ENDPOINT', 'http://localhost:9000')}/{os.getenv('MINIO_BUCKET_NAME', 'expedientes-siniestros')}/"
 
 

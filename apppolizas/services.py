@@ -1,16 +1,21 @@
-import jwt
 import datetime
-from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.contrib.auth import authenticate
-
+import os
 from datetime import date
 from decimal import Decimal
-from .models import Usuario, Poliza, Siniestro, Factura, Finiquito, Notificacion
-from .repositories import UsuarioRepository, PolizaRepository, SiniestroRepository, FacturaRepository, DocumentoRepository, CustodioRepository, FiniquitoRepository, NotificacionRepository, BienRepository
-import os
 
+import jwt
+from django.conf import settings
+from django.contrib.auth import authenticate
+from django.core.exceptions import ValidationError
 from django.db import transaction
+
+from .models import (Factura, Finiquito, Notificacion, Poliza, Siniestro,
+                     Usuario)
+from .repositories import (BienRepository, CustodioRepository,
+                           DocumentoRepository, FacturaRepository,
+                           FiniquitoRepository, NotificacionRepository,
+                           PolizaRepository, SiniestroRepository,
+                           UsuarioRepository)
 
 
 class AuthService:
@@ -30,7 +35,7 @@ class AuthService:
         if user is None:
             raise ValidationError("Credenciales inválidas")
 
-        if not hasattr(user, 'rol'):
+        if not hasattr(user, "rol"):
             raise ValidationError("El usuario no tiene un rol asignado")
 
         return user, user.rol
@@ -52,14 +57,14 @@ class AuthService:
             raise ValidationError("Acceso denegado. Este usuario no es Analista.")
 
         payload = {
-            'id': user.id,
-            'username': user.username,
-            'rol': user.rol,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=2),
-            'iat': datetime.datetime.utcnow()
+            "id": user.id,
+            "username": user.username,
+            "rol": user.rol,
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=2),
+            "iat": datetime.datetime.utcnow(),
         }
 
-        token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+        token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
         return token
 
@@ -74,7 +79,7 @@ class PolizaService:
     @staticmethod
     def crear_poliza(data):
         # 1. Validaciones
-        if data.get('prima_total') < data.get('prima_base'):
+        if data.get("prima_total") < data.get("prima_base"):
             raise ValidationError("La prima total no puede ser menor a la prima base")
 
         # 2. Crear la póliza
@@ -82,17 +87,19 @@ class PolizaService:
 
         # 3. --- NUEVO: GENERAR NOTIFICACIÓN AUTOMÁTICA ---
         # Verificamos si hay un usuario gestor asociado para enviarle la alerta
-        usuario = data.get('usuario_gestor')
-        
+        usuario = data.get("usuario_gestor")
+
         if usuario:
             # Usamos NotificacionRepository directamente para evitar errores de orden de lectura
-            NotificacionRepository.crear({
-                'usuario': usuario,
-                'tipo_alerta': 'VENCIMIENTO_POLIZA', # Usamos este tipo o 'OTRO' para indicar nueva creación
-                'mensaje': f"Se ha registrado exitosamente la nueva póliza {poliza.numero_poliza}.",
-                'estado': 'PENDIENTE',
-                'id_referencia': str(poliza.id)
-            })
+            NotificacionRepository.crear(
+                {
+                    "usuario": usuario,
+                    "tipo_alerta": "VENCIMIENTO_POLIZA",  # Usamos este tipo o 'OTRO' para indicar nueva creación
+                    "mensaje": f"Se ha registrado exitosamente la nueva póliza {poliza.numero_poliza}.",
+                    "estado": "PENDIENTE",
+                    "id_referencia": str(poliza.id),
+                }
+            )
         # -------------------------------------------------
 
         return poliza
@@ -121,12 +128,13 @@ class PolizaService:
     @staticmethod
     def contar_polizas_activas():
         return Poliza.objects.filter(estado=True).count()
-    
+
     @staticmethod
     def contar_polizas_vencidas():
         return Poliza.objects.filter(vigencia_fin__lt=date.today()).count()
-    
-#---------------------
+
+
+# ---------------------
 # SINIESTRO
 class SiniestroService:
     @staticmethod
@@ -142,24 +150,28 @@ class SiniestroService:
         """
         Crea un siniestro y notifica al usuario (solo texto).
         """
-        
+
         # 1. Validaciones de Negocio
         if not poliza.estado:
-             raise ValidationError("No se puede registrar un siniestro en una póliza inactiva.")
+            raise ValidationError(
+                "No se puede registrar un siniestro en una póliza inactiva."
+            )
 
         # 2. Guardar el siniestro
         siniestro = SiniestroRepository.create(poliza, data, usuario)
 
         # 3. --- NUEVO: NOTIFICACIÓN DE SINIESTRO ---
         if usuario:
-            NotificacionRepository.crear({
-                'usuario': usuario,
-                'tipo_alerta': 'OTRO', 
-                # AQUÍ USAMOS EL BIEN PARA OBTENER EL NOMBRE:
-                'mensaje': f"Nuevo Siniestro registrado en la póliza {poliza.numero_poliza}. Bien afectado: {siniestro.bien.detalle}",
-                'estado': 'PENDIENTE',
-                'id_referencia': str(siniestro.id)
-            })
+            NotificacionRepository.crear(
+                {
+                    "usuario": usuario,
+                    "tipo_alerta": "OTRO",
+                    # AQUÍ USAMOS EL BIEN PARA OBTENER EL NOMBRE:
+                    "mensaje": f"Nuevo Siniestro registrado en la póliza {poliza.numero_poliza}. Bien afectado: {siniestro.bien.detalle}",
+                    "estado": "PENDIENTE",
+                    "id_referencia": str(siniestro.id),
+                }
+            )
         # -------------------------------------------
 
         return siniestro
@@ -167,7 +179,8 @@ class SiniestroService:
     @staticmethod
     def actualizar_siniestro(siniestro_id, data):
         return SiniestroRepository.update(siniestro_id, data)
-    
+
+
 class FacturaService:
     """Servicio para gestión de Facturación y Cobranzas"""
 
@@ -185,13 +198,15 @@ class FacturaService:
         usuario_destino = factura.poliza.usuario_gestor
 
         if usuario_destino:
-            NotificacionRepository.crear({
-                'usuario': usuario_destino,
-                'tipo_alerta': 'PAGO_PENDIENTE',  # <--- Esto pone el ícono de Cobranza/Dinero
-                'mensaje': f"Nueva Factura {factura.numero_factura} generada. Valor a pagar: ${factura.valor_a_pagar}",
-                'estado': 'PENDIENTE',
-                'id_referencia': str(factura.id)
-            })
+            NotificacionRepository.crear(
+                {
+                    "usuario": usuario_destino,
+                    "tipo_alerta": "PAGO_PENDIENTE",  # <--- Esto pone el ícono de Cobranza/Dinero
+                    "mensaje": f"Nueva Factura {factura.numero_factura} generada. Valor a pagar: ${factura.valor_a_pagar}",
+                    "estado": "PENDIENTE",
+                    "id_referencia": str(factura.id),
+                }
+            )
         # ------------------------------------------------
 
         return factura
@@ -203,14 +218,16 @@ class FacturaService:
             raise ValidationError("La factura solicitada no existe")
         return factura
 
+
 # Servicio para gestión de Documentos de Siniestros
 
+
 class DocumentoService:
-        
+
     # Extensiones permitidas (Seguridad)
-    EXTENSIONES_VALIDAS = ['.pdf', '.jpg', '.jpeg', '.png']
+    EXTENSIONES_VALIDAS = [".pdf", ".jpg", ".jpeg", ".png"]
     # Tamaño máximo (5MB)
-    MAX_TAMANO_MB = 5 * 1024 * 1024 
+    MAX_TAMANO_MB = 5 * 1024 * 1024
 
     @staticmethod
     def subir_evidencia(siniestro_id, data_form, archivo, usuario):
@@ -223,13 +240,17 @@ class DocumentoService:
             raise ValidationError("El siniestro no existe.")
 
         # 2. Validar que el siniestro no esté cerrado (Regla de negocio)
-        if siniestro.estado_tramite == 'LIQUIDADO':
-            raise ValidationError("No se pueden agregar documentos a un siniestro liquidado.")
+        if siniestro.estado_tramite == "LIQUIDADO":
+            raise ValidationError(
+                "No se pueden agregar documentos a un siniestro liquidado."
+            )
 
         # 3. Validar extensión del archivo
         ext = os.path.splitext(archivo.name)[1].lower()
         if ext not in DocumentoService.EXTENSIONES_VALIDAS:
-            raise ValidationError(f"Formato no permitido. Use: {', '.join(DocumentoService.EXTENSIONES_VALIDAS)}")
+            raise ValidationError(
+                f"Formato no permitido. Use: {', '.join(DocumentoService.EXTENSIONES_VALIDAS)}"
+            )
 
         # 4. Validar tamaño
         if archivo.size > DocumentoService.MAX_TAMANO_MB:
@@ -237,9 +258,9 @@ class DocumentoService:
 
         # 5. Preparar datos para el repositorio
         datos_limpios = {
-            'siniestro': siniestro,
-            'tipo': data_form['tipo'],
-            'descripcion': data_form.get('descripcion')
+            "siniestro": siniestro,
+            "tipo": data_form["tipo"],
+            "descripcion": data_form.get("descripcion"),
         }
 
         # 6. Llamar al repositorio
@@ -248,7 +269,7 @@ class DocumentoService:
     @staticmethod
     def listar_evidencias(siniestro_id):
         return DocumentoRepository.get_by_siniestro(siniestro_id)
-    
+
 
 class CustodioService:
     """Servicio para gestión de Custodios"""
@@ -279,12 +300,14 @@ class CustodioService:
     @staticmethod
     def eliminar_custodio(custodio_id):
         # Aquí podrías validar si tiene siniestros asociados antes de borrar
-        # (Django lanzará error de integridad ProtectedError por on_delete=models.PROTECT, 
+        # (Django lanzará error de integridad ProtectedError por on_delete=models.PROTECT,
         # pero es bueno manejarlo)
         try:
             CustodioRepository.delete(custodio_id)
         except Exception as e:
-            raise ValidationError("No se puede eliminar: El custodio tiene siniestros asociados.")
+            raise ValidationError(
+                "No se puede eliminar: El custodio tiene siniestros asociados."
+            )
 
 
 class BienService:
@@ -296,8 +319,8 @@ class BienService:
         custodio = CustodioRepository.get_by_id(custodio_id)
         if not custodio:
             raise ValidationError("El custodio solicitado no existe.")
-        
-        return BienRepository.get_by_custodio(custodio_id).select_related('custodio')
+
+        return BienRepository.get_by_custodio(custodio_id).select_related("custodio")
 
     @staticmethod
     def obtener_detalle_bien(bien_id):
@@ -322,31 +345,31 @@ class FiniquitoService:
             raise ValidationError("El siniestro no existe.")
 
         # 2. Validar que no esté ya liquidado (Evita duplicados lógicos)
-        if siniestro.estado_tramite == 'LIQUIDADO':
+        if siniestro.estado_tramite == "LIQUIDADO":
             raise ValidationError("Este siniestro ya ha sido liquidado.")
 
-        # 3. Lógica de Cálculo Financiero 
-        valor_reclamo = Decimal(data['valor_total_reclamo'])
-        deducible = Decimal(data['valor_deducible'])
-        depreciacion = Decimal(data['valor_depreciacion'])
+        # 3. Lógica de Cálculo Financiero
+        valor_reclamo = Decimal(data["valor_total_reclamo"])
+        deducible = Decimal(data["valor_deducible"])
+        depreciacion = Decimal(data["valor_depreciacion"])
 
         # Fórmula: Reclamo - Deducible - Depreciación
         valor_final = valor_reclamo - deducible - depreciacion
 
         if valor_final < 0:
-            valor_final = Decimal('0.00')
+            valor_final = Decimal("0.00")
 
         # 4. Preparar datos para persistencia
         datos_finiquito = {
-            'siniestro': siniestro,
-            'fecha_finiquito': data['fecha_finiquito'],
-            'id_finiquito': data.get('id_finiquito'),
-            'valor_total_reclamo': valor_reclamo,
-            'valor_deducible': deducible,
-            'valor_depreciacion': depreciacion,
-            'valor_final_pago': valor_final,
-            'documento_firmado': archivo_firmado,
-            'pagado_a_usuario': False 
+            "siniestro": siniestro,
+            "fecha_finiquito": data["fecha_finiquito"],
+            "id_finiquito": data.get("id_finiquito"),
+            "valor_total_reclamo": valor_reclamo,
+            "valor_deducible": deducible,
+            "valor_depreciacion": depreciacion,
+            "valor_final_pago": valor_final,
+            "documento_firmado": archivo_firmado,
+            "pagado_a_usuario": False,
         }
 
         # --- INICIO DE TRANSACCIÓN ---
@@ -357,10 +380,11 @@ class FiniquitoService:
 
             # 6. Actualizar Estado del Siniestro
             # Si esto falla (ej. IntegrityError por campos nulos), se hace ROLLBACK del paso 5.
-            SiniestroRepository.update(siniestro.id, {'estado_tramite': 'LIQUIDADO'})
+            SiniestroRepository.update(siniestro.id, {"estado_tramite": "LIQUIDADO"})
 
             return finiquito
         # --- FIN DE TRANSACCIÓN ---
+
 
 class NotificacionService:
     """Servicio de Negocio para Notificaciones"""
@@ -368,11 +392,11 @@ class NotificacionService:
     @staticmethod
     def crear_notificacion(usuario, tipo, mensaje, id_ref=None):
         data = {
-            'usuario': usuario,
-            'tipo_alerta': tipo,
-            'mensaje': mensaje,
-            'id_referencia': id_ref,
-            'estado': 'PENDIENTE'
+            "usuario": usuario,
+            "tipo_alerta": tipo,
+            "mensaje": mensaje,
+            "id_referencia": id_ref,
+            "estado": "PENDIENTE",
         }
         return NotificacionRepository.crear(data)
 

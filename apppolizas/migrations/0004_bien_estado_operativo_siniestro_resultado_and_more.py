@@ -6,23 +6,44 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('apppolizas', '0003_remove_siniestro_codigo_activo_and_more'),
+        ("apppolizas", "0003_remove_siniestro_codigo_activo_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='bien',
-            name='estado_operativo',
-            field=models.CharField(choices=[('ACTIVO', 'Activo'), ('INACTIVO', 'Inactivo')], default='ACTIVO', max_length=10, verbose_name='Estado Operativo'),
+            model_name="bien",
+            name="estado_operativo",
+            field=models.CharField(
+                choices=[("ACTIVO", "Activo"), ("INACTIVO", "Inactivo")],
+                default="ACTIVO",
+                max_length=10,
+                verbose_name="Estado Operativo",
+            ),
         ),
         migrations.AddField(
-            model_name='siniestro',
-            name='resultado',
-            field=models.CharField(blank=True, choices=[('ARREGLADO', 'Arreglado'), ('REEMPLAZADO', 'Reemplazado')], max_length=20, null=True),
+            model_name="siniestro",
+            name="resultado",
+            field=models.CharField(
+                blank=True,
+                choices=[("ARREGLADO", "Arreglado"), ("REEMPLAZADO", "Reemplazado")],
+                max_length=20,
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='siniestro',
-            name='estado_tramite',
-            field=models.CharField(choices=[('REPORTADO', 'Reportado'), ('DOCUMENTACION', 'En validación'), ('ENVIADO_ASEGURADORA', 'Enviado a Aseguradora'), ('REPARACION', 'Reparación/Observación'), ('LIQUIDADO', 'Liquidado'), ('RECHAZADO', 'Rechazado')], default='REPORTADO', max_length=50),
+            model_name="siniestro",
+            name="estado_tramite",
+            field=models.CharField(
+                choices=[
+                    ("REPORTADO", "Reportado"),
+                    ("DOCUMENTACION", "En validación"),
+                    ("ENVIADO_ASEGURADORA", "Enviado a Aseguradora"),
+                    ("REPARACION", "Reparación/Observación"),
+                    ("LIQUIDADO", "Liquidado"),
+                    ("RECHAZADO", "Rechazado"),
+                ],
+                default="REPORTADO",
+                max_length=50,
+            ),
         ),
     ]

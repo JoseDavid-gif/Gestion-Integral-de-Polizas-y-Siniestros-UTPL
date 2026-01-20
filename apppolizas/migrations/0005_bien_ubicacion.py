@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('apppolizas', '0004_bien_estado_operativo_siniestro_resultado_and_more'),
+        ("apppolizas", "0004_bien_estado_operativo_siniestro_resultado_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='bien',
-            name='ubicacion',
-            field=models.CharField(default='Sala H - Computo', max_length=100, verbose_name='Ubicación'),
+            model_name="bien",
+            name="ubicacion",
+            field=models.CharField(
+                default="Sala H - Computo", max_length=100, verbose_name="Ubicación"
+            ),
         ),
     ]

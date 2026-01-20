@@ -34,7 +34,6 @@ jobs:
           pip install flake8 black isort
           pip install -r requirements.txt
 
-
       - name: Run flake8
         run: |
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
@@ -77,9 +76,9 @@ jobs:
           MINIO_ROOT_PASSWORD: password123
         ports:
           - 9000:9000
-        options: >-
-          --entrypoint /bin/sh -c "minio server /data"
-
+        # ✅ CORRECCIÓN: Se eliminó el 'options' con entrypoint conflictivo.
+        # MinIO ahora usa su comando interno 'server /data' por defecto.
+        args: server /data 
 
     steps:
       - name: Checkout code
@@ -115,7 +114,6 @@ jobs:
             sleep 2
           done
 
-      # ✅ CREACIÓN CORRECTA DEL BUCKET (ÚNICA Y BIEN UBICADA)
       - name: Create MinIO bucket
         run: |
           aws configure set aws_access_key_id admin
@@ -160,19 +158,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install safety bandit
-
       - name: Check dependencies for vulnerabilities
         run: safety check --file requirements.txt || true
-
       - name: Run Bandit security linter
         run: |
           bandit -r . -f json -o bandit-report.json || true
@@ -185,9 +179,7 @@ jobs:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     steps:
       - uses: actions/checkout@v4
-
       - uses: docker/setup-buildx-action@v3
-
       - uses: docker/build-push-action@v5
         with:
           context: .

@@ -7,83 +7,146 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('apppolizas', '0002_alter_aseguradora_id_alter_broker_id_and_more'),
+        ("apppolizas", "0002_alter_aseguradora_id_alter_broker_id_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='siniestro',
-            name='codigo_activo',
+            model_name="siniestro",
+            name="codigo_activo",
         ),
         migrations.RemoveField(
-            model_name='siniestro',
-            name='marca',
+            model_name="siniestro",
+            name="marca",
         ),
         migrations.RemoveField(
-            model_name='siniestro',
-            name='modelo',
+            model_name="siniestro",
+            name="modelo",
         ),
         migrations.RemoveField(
-            model_name='siniestro',
-            name='nombre_bien',
+            model_name="siniestro",
+            name="nombre_bien",
         ),
         migrations.RemoveField(
-            model_name='siniestro',
-            name='serie',
+            model_name="siniestro",
+            name="serie",
         ),
         migrations.AddField(
-            model_name='responsablecustodio',
-            name='ciudad',
-            field=models.CharField(blank=True, help_text='Ej: Loja - CPL', max_length=100, null=True),
+            model_name="responsablecustodio",
+            name="ciudad",
+            field=models.CharField(
+                blank=True, help_text="Ej: Loja - CPL", max_length=100, null=True
+            ),
         ),
         migrations.AddField(
-            model_name='responsablecustodio',
-            name='edificio',
-            field=models.CharField(blank=True, help_text='Ej: Edificio D', max_length=100, null=True),
+            model_name="responsablecustodio",
+            name="edificio",
+            field=models.CharField(
+                blank=True, help_text="Ej: Edificio D", max_length=100, null=True
+            ),
         ),
         migrations.AddField(
-            model_name='responsablecustodio',
-            name='puesto',
-            field=models.CharField(blank=True, help_text='Ej: D4D06-6-PUESTO DE DOCENTE', max_length=150, null=True),
+            model_name="responsablecustodio",
+            name="puesto",
+            field=models.CharField(
+                blank=True,
+                help_text="Ej: D4D06-6-PUESTO DE DOCENTE",
+                max_length=150,
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='responsablecustodio',
-            name='departamento',
-            field=models.CharField(blank=True, max_length=100, null=True, verbose_name='Departamento/Carrera'),
+            model_name="responsablecustodio",
+            name="departamento",
+            field=models.CharField(
+                blank=True,
+                max_length=100,
+                null=True,
+                verbose_name="Departamento/Carrera",
+            ),
         ),
         migrations.AlterField(
-            model_name='responsablecustodio',
-            name='identificacion',
-            field=models.CharField(max_length=20, unique=True, verbose_name='Cédula'),
+            model_name="responsablecustodio",
+            name="identificacion",
+            field=models.CharField(max_length=20, unique=True, verbose_name="Cédula"),
         ),
         migrations.AlterField(
-            model_name='responsablecustodio',
-            name='nombre_completo',
-            field=models.CharField(max_length=150, verbose_name='Custodio'),
+            model_name="responsablecustodio",
+            name="nombre_completo",
+            field=models.CharField(max_length=150, verbose_name="Custodio"),
         ),
         migrations.AlterField(
-            model_name='siniestro',
-            name='ubicacion_bien',
-            field=models.CharField(help_text='Lugar exacto donde ocurrió el siniestro', max_length=255),
+            model_name="siniestro",
+            name="ubicacion_bien",
+            field=models.CharField(
+                help_text="Lugar exacto donde ocurrió el siniestro", max_length=255
+            ),
         ),
         migrations.CreateModel(
-            name='Bien',
+            name="Bien",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('codigo', models.CharField(max_length=50, unique=True, verbose_name='Código')),
-                ('baan_v', models.CharField(blank=True, max_length=50, null=True, verbose_name='BAAN V')),
-                ('detalle', models.TextField(verbose_name='Detalle / Descripción')),
-                ('serie', models.CharField(blank=True, default='No aplica', max_length=100, null=True)),
-                ('modelo', models.CharField(blank=True, default='No aplica', max_length=100, null=True)),
-                ('marca', models.CharField(blank=True, max_length=100, null=True)),
-                ('estado_fisico', models.CharField(choices=[('B', 'Bueno'), ('R', 'Regular'), ('M', 'Malo')], default='B', max_length=1, verbose_name='Estado Físico')),
-                ('custodio', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='bienes', to='apppolizas.responsablecustodio')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "codigo",
+                    models.CharField(max_length=50, unique=True, verbose_name="Código"),
+                ),
+                (
+                    "baan_v",
+                    models.CharField(
+                        blank=True, max_length=50, null=True, verbose_name="BAAN V"
+                    ),
+                ),
+                ("detalle", models.TextField(verbose_name="Detalle / Descripción")),
+                (
+                    "serie",
+                    models.CharField(
+                        blank=True, default="No aplica", max_length=100, null=True
+                    ),
+                ),
+                (
+                    "modelo",
+                    models.CharField(
+                        blank=True, default="No aplica", max_length=100, null=True
+                    ),
+                ),
+                ("marca", models.CharField(blank=True, max_length=100, null=True)),
+                (
+                    "estado_fisico",
+                    models.CharField(
+                        choices=[("B", "Bueno"), ("R", "Regular"), ("M", "Malo")],
+                        default="B",
+                        max_length=1,
+                        verbose_name="Estado Físico",
+                    ),
+                ),
+                (
+                    "custodio",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="bienes",
+                        to="apppolizas.responsablecustodio",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='siniestro',
-            name='bien',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.PROTECT, related_name='siniestros', to='apppolizas.bien', verbose_name='Bien Afectado'),
+            model_name="siniestro",
+            name="bien",
+            field=models.ForeignKey(
+                default=1,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="siniestros",
+                to="apppolizas.bien",
+                verbose_name="Bien Afectado",
+            ),
             preserve_default=False,
         ),
     ]
